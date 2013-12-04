@@ -112,10 +112,7 @@ void I_ErrorVA(const char *error, va_list args)
    if(error_exitcode < I_ERRORLEVEL_NORMAL)
       error_exitcode = I_ERRORLEVEL_NORMAL;
 
-   va_list argptr;
-   va_start(argptr,error);
    vprintf(error, args);
-   va_end(argptr);
 
    if(!has_exited)
    {
