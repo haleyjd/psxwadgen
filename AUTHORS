@@ -1,0 +1,100 @@
+"psxwadgen"
+Copyright (c) 2013 James Haley et al.
+
+Based on code from the Eternity Engine.
+
+Team Eternity is:
+-----------------
+James Haley <haleyjd@hotmail.com>
+Stephen McGranahan
+David Hill
+Charles Gunyon
+Ioan Chera
+
+
+Previous Team Members
+---------------------
+Joe Kennedy
+Julian Aubourg
+
+
+Feature and Patch Contributors
+------------------------------
+4mer
+Anders Astrand
+Cephaler
+Claude Freeman
+Gez
+Joel Murdoch
+Kate Stone
+MP2E
+Russel Rice
+Samuel "Kaiser" Villarreal
+Simon "fraggle" Howard
+SargeBaldy
+Yagisan
+
+
+Based On Works
+--------------
+
+GPL DOOM Source
+   id Software
+
+GPL Heretic and Hexen Source
+   Raven Software
+
+DosDOOM
+   Chi Hoang
+
+BOOM, by TeamTNT
+   Lee Killough
+   Jim Flynn
+   Rand Phares
+   Ty Halderman
+   Stan Gula
+   
+MBF - "Marine's Best Friend"
+   Lee Killough
+   
+SMMU - "Smack My Marine Up"
+   Simon "fraggle" Howard
+
+
+Significant Code Utilized From
+------------------------------
+
+Quake 2 Source, Quake 3 Source
+   id Software
+   Gilles Vollant
+
+Chocolate Doom
+   Simon "fraggle" Howard
+                              
+PrBoom
+   Colin Phipps
+   Florian Schulze
+
+PrBoom-Plus
+   Andrey Budko
+   
+ZDoom
+   Randy Heit
+   Graf Zahl
+   Braden Obrzut
+   
+
+Libraries/Code Utilized
+-----------------------
+   
+zlib
+   Jean-loup Gailly, Mark Adler, et al.
+   
+DJGPP libc
+   DJ Delorie et al.
+   
+MinGW libc
+   Matt Weinstein et al.
+   
+LLVM libc++
+   LLVM Team, University of Illinois at Urbana-Champaign; Howard Hinnant et al.
