@@ -1,0 +1,72 @@
+// Emacs style mode select   -*- C++ -*-
+//-----------------------------------------------------------------------------
+//
+// Copyright(C) 2013 James Haley
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+//-----------------------------------------------------------------------------
+//
+// DESCRIPTION:
+//    Zip file writer
+//
+//-----------------------------------------------------------------------------
+
+#ifndef ZIP_WRITE_H__
+#define ZIP_WRITE_H__
+
+#include "doomtype.h"
+
+//
+// zipfile - a single file to be added to the zip
+//
+struct zipfile_t
+{
+   zipfile_t  *next;    // next file
+
+   const char *name;    // file name
+   const byte *data;    // file data
+   uint32_t    len;     // length of data
+   long        offset;  // offset in physical file after written
+   uint32_t    crc;     // cached CRC value
+   uint32_t    extattr; // external attributes
+   uint16_t    intattr; // internal attributes
+};
+
+//
+// ziparchive - represents the entire zip file
+//
+struct ziparchive_t
+{
+   zipfile_t  *files;     // list of files
+   zipfile_t  *last;      // last file
+   const char *filename;  // physical file name
+   long        diroffset; // offset of central directory
+   uint16_t    fcount;    // count of files
+   uint32_t    dirlen;    // length of central directory
+};
+
+// Zip File Types
+enum ziptype_e
+{
+   ZIP_FILE_BINARY,
+   ZIP_FILE_TEXT,
+   ZIP_DIRECTORY
+};
+
+#endif
+
+// EOF
+
