@@ -36,7 +36,9 @@
 DIR          *inputDir;  // input directory
 WadDirectory  psxIWAD;   // IWAD directory
 
+#ifdef OPEN_LEVEL_PWADS
 PODCollection<WadDirectory *> levelWads; // PWAD directories
+#endif
 
 //
 // D_verifyInputDirectory
@@ -88,6 +90,7 @@ static void D_openPSXIWAD(const qstring &inpath)
       I_Error("D_openPSXIWAD: cannot open '%s'\n", filepath.constPtr());
 }
 
+#ifdef OPEN_LEVEL_PWADS
 //
 // D_openLevelPWADs
 //
@@ -130,6 +133,7 @@ static void D_openLevelPWADs(const qstring &inpath)
       }
    }
 }
+#endif
 
 //=============================================================================
 //
@@ -144,8 +148,10 @@ void D_LoadInputFiles(const qstring &inpath)
    // Load IWAD
    D_openPSXIWAD(inpath);
 
+#ifdef OPEN_LEVEL_PWADS
    // Load Level PWADs
    D_openLevelPWADs(inpath);
+#endif
 }
 
 // EOF
