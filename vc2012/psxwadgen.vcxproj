@@ -94,6 +94,7 @@
     <ClCompile Include="..\m_qstr.cpp" />
     <ClCompile Include="..\m_strcasestr.cpp" />
     <ClCompile Include="..\psnprntf.cpp" />
+    <ClCompile Include="..\s_sfxgen.cpp" />
     <ClCompile Include="..\tables.cpp" />
     <ClCompile Include="..\v_psx.cpp" />
     <ClCompile Include="..\w_formats.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="..\psnprntf.h" />
     <ClInclude Include="..\r_patch.h" />
     <ClInclude Include="..\stdint.h" />
+    <ClInclude Include="..\s_sfxgen.h" />
     <ClInclude Include="..\tables.h" />
     <ClInclude Include="..\v_psx.h" />
     <ClInclude Include="..\w_formats.h" />

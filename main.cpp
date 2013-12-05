@@ -43,8 +43,6 @@ static void D_CheckForParameters()
 {
    int p;
 
-   printf("D_CheckForParameters: Checking command line parameters\n");
-
    if((p = M_CheckParm("-input")) && p < myargc - 1)
       baseinputdir = myargv[p+1];
    else
@@ -77,6 +75,7 @@ static void D_Init()
    Z_Init();
 
    // Check for command line parameters
+   printf("D_CheckForParameters: Checking command line parameters.\n");
    D_CheckForParameters();
 
    // Load PSX wad files from input directory
@@ -84,8 +83,8 @@ static void D_Init()
    D_LoadInputFiles(baseinputdir);
 }
 
-// do zip unit test
-#include "zip_write.h"
+// TEMP: for sound unit test
+#include "s_sfxgen.h"
 
 //
 // Main Program
@@ -99,8 +98,8 @@ int main(int argc, char **argv)
    // perform initialization
    D_Init();
 
-   // TEST: Do zip unit test
-   Zip_UnitTest();
+   // SOUND UNIT TEST
+   S_UnitTest(baseinputdir);
 
    return 0;
 }

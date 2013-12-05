@@ -87,6 +87,9 @@
     <ClCompile Include="..\zip_write.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\s_sfxgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\autopalette.h">
@@ -213,6 +216,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\zip_write.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\s_sfxgen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
