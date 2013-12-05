@@ -28,7 +28,7 @@
 #ifndef DOOMTYPE_H__
 #define DOOMTYPE_H__
 
-#include "inttypes.h"
+#include <inttypes.h>
 
 #ifndef BYTEBOOL__
 #define BYTEBOOL__

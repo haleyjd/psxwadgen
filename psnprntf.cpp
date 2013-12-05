@@ -10,7 +10,7 @@
 #include <string.h> /* for memset */
 #include <stdarg.h> /* for va_list */
 #include <stdlib.h> /* for fcvt */
-#include "inttypes.h" /* haleyjd */
+#include <inttypes.h> /* haleyjd */
 
 #include "psnprntf.h"
 

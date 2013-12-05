@@ -65,7 +65,7 @@
 #include <time.h>
 
 // haleyjd: inttypes.h - on Windows, this comes from the source\Win32 directory
-#include "inttypes.h"
+#include <inttypes.h>
 
 // haleyjd: C++ headers
 #include <new>
