@@ -39,10 +39,12 @@ struct zipfile_t
    const char *name;    // file name
    const byte *data;    // file data
    uint32_t    len;     // length of data
+   uint32_t    clen;    // length of data when compressed (== len if not)
    long        offset;  // offset in physical file after written
    uint32_t    crc;     // cached CRC value
    uint32_t    extattr; // external attributes
    uint16_t    intattr; // internal attributes
+   bool        deflate; // if true, use deflate compression
 };
 
 //
@@ -65,6 +67,10 @@ enum ziptype_e
    ZIP_FILE_TEXT,
    ZIP_DIRECTORY
 };
+
+
+// Unit test function
+void Zip_UnitTest();
 
 #endif
 

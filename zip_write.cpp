@@ -26,8 +26,13 @@
 
 #include "z_zone.h"
 
+#include "i_system.h"
 #include "m_buffer.h"
+#include "z_auto.h"
 #include "zip_write.h"
+
+// Need zlib for deflate support
+#include "zlib/zlib.h"
 
 //=============================================================================
 //
@@ -48,13 +53,15 @@ void Zip_Create(ziparchive_t *zip, const char *filename)
 // Zip_AddFile
 //
 zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, const byte *data, 
-                       unsigned int len, ziptype_e fileType)
+                       uint32_t len, ziptype_e fileType, bool deflate)
 {
    auto file = estructalloc(zipfile_t, 1);
 
-   file->name = name;
-   file->data = data;
-   file->len  = len;
+   file->name    = name;
+   file->data    = data;
+   file->len     = len;
+   file->clen    = len;     // start out clen same as len
+   file->deflate = deflate;
 
    // Does anything actually pay attention to these? Oh well.
    switch(fileType)
@@ -168,26 +175,78 @@ static uint32_t M_CRC32HashData(const byte *data, unsigned int len)
 //
 //=============================================================================
 
+static int Zip_Compress(Bytef *dest, uLongf *destLen, const Bytef *source,
+                        uLong sourceLen, int level)
+{
+   z_stream stream;
+   int err;
+
+   stream.next_in   = (Bytef*)source;
+   stream.avail_in  = (uInt)sourceLen;
+   stream.next_out  = dest;
+   stream.avail_out = (uInt)*destLen;
+   
+   if((uLong)stream.avail_out != *destLen)
+      return Z_BUF_ERROR;
+
+   stream.zalloc = Z_NULL;
+   stream.zfree  = Z_NULL;
+   stream.opaque = Z_NULL;
+
+   err = deflateInit2(&stream, Z_BEST_COMPRESSION, Z_DEFLATED, 
+                      -MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+   if(err != Z_OK)
+      return err;
+
+   err = deflate(&stream, Z_FINISH);
+   if(err != Z_STREAM_END) 
+   {
+      deflateEnd(&stream);
+      return err == Z_OK ? Z_BUF_ERROR : err;
+   }
+   *destLen = stream.total_out;
+
+   err = deflateEnd(&stream);
+   return err;
+}
+
 //
 // Zip_WriteFile
 //
 void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
 {
-   uint16_t date, time;
-   uint16_t namelen;
+   ZAutoBuffer buffer;
+   uint16_t    date, time;
+   uint16_t    namelen;
+   const byte *data;
+   uint32_t    len;
+
+   // Can't deflate an empty file
+   if(!file->len || !file->data)
+      file->deflate = false;
 
    ob.Flush();
 
    file->offset = ob.Tell();
 
    ob.WriteUint32(0x04034b50); // local file header signature
-   ob.WriteUint16(0x0A);       // version needed to extract (1.0)
-   ob.WriteUint16(0);          // general purpose bit flag
-   ob.WriteUint16(0);          // compression method == store
+   ob.WriteUint16(0x14);       // version needed to extract (2.0)
+
+   // general purpose bit flag and compression method
+   if(file->deflate)
+   {
+      ob.WriteUint16(2); // Max deflate compressed
+      ob.WriteUint16(8); // compression method == deflate
+   }
+   else
+   {
+      ob.WriteUint16(0); // Nothing special 
+      ob.WriteUint16(0); // compression method == store
+   }
    
    // Time is psxwadgen version #; date is PlayStation Doom release date.
    time = (1 << 5) | (1 << 11);
-   date = 11 | (16 << 5) | (15 << 9);
+   date = 5 | (11 << 5) | (15 << 9); 
    
    ob.WriteUint16(time);       // file time
    ob.WriteUint16(date);       // file date (11/16/1995)
@@ -200,8 +259,30 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    else
       file->crc = 0;
 
+   if(file->deflate)
+   {
+      auto tmpSize = compressBound(file->len);
+      
+      buffer.alloc(tmpSize, true);      
+      auto tmpData = buffer.getAs<byte *>();
+
+      auto res = Zip_Compress(tmpData, &tmpSize, file->data, file->len, 8);
+      if(res != Z_OK)
+         I_Error("ZIP_WriteFile: compress returned error code %d\n", res);
+
+      // write back compressed size
+      file->clen = (uint32_t)tmpSize;
+      data = tmpData;
+      len  = file->clen;
+   }
+   else
+   {
+      data = file->data;
+      len  = file->len;
+   }
+
    ob.WriteUint32(file->crc);  // CRC-32
-   ob.WriteUint32(file->len);  // compressed size
+   ob.WriteUint32(file->clen); // compressed size
    ob.WriteUint32(file->len);  // uncompressed size
 
    namelen = (uint16_t)strlen(file->name);
@@ -211,9 +292,9 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    // write file name
    ob.Write(file->name, namelen);
 
-   // write file contents
-   if(file->len)
-      ob.Write(file->data, file->len);
+   // write file contents (stored or deflated)
+   if(len)
+      ob.Write(data, len);
 }
 
 //
@@ -225,19 +306,29 @@ void Zip_WriteDirEntry(ziparchive_t *zip, zipfile_t *file, OutBuffer &ob)
    unsigned short namelen;
 
    ob.WriteUint32(0x02014b50); // central file header signature
-   ob.WriteUint16(0x0B14);     // version made by (Info-Zip NTFS)
-   ob.WriteUint16(0x0A);       // version needed to extract (1.0)
-   ob.WriteUint16(0);          // general purpose bit flag
-   ob.WriteUint16(0);          // compression method == store
+   ob.WriteUint16(0x0B14);     // version made by 
+   ob.WriteUint16(0x14);       // version needed to extract (2.0)
+
+   // general purpose bit flag and compression method
+   if(file->deflate)
+   {
+      ob.WriteUint16(2); // Max deflate compressed
+      ob.WriteUint16(8); // compression method == deflate
+   }
+   else
+   {
+      ob.WriteUint16(0); // Nothing special    
+      ob.WriteUint16(0); // compression method == store
+   }
 
    // Time is psxwadgen version #; date is PSX Doom release date.
    time = (1 << 5) | (1 << 11);
-   date = 11 | (16 << 5) | (15 << 9);
+   date = 5 | (11 << 5) | (15 << 9); 
    
-   ob.WriteUint16(time);       // file time (3:35)
-   ob.WriteUint16(date);       // file date (3/5/2093)
+   ob.WriteUint16(time);       // file time
+   ob.WriteUint16(date);       // file date
    ob.WriteUint32(file->crc);  // CRC-32 (already calculated)
-   ob.WriteUint32(file->len);  // compressed size
+   ob.WriteUint32(file->clen); // compressed size
    ob.WriteUint32(file->len);  // uncompressed size
 
    namelen = (uint16_t)strlen(file->name);
@@ -310,37 +401,40 @@ void Zip_Write(ziparchive_t *zip)
    ob.Close();
 }
 
-#if 0
 //
-// main
+// Zip_UnitTest
 //
-int main(void)
+// Test function to try out the zip writer.
+//
+void Zip_UnitTest()
 {
    ziparchive_t zip;
    zipfile_t *foo;
    zipfile_t *bar_folder;
    zipfile_t *baz;
 
-   const char   *foodata = "Hello Zip World!\n";
+   const char   *foodata = 
+      "Hello Zip World!\r\n"
+      "This is a test of the ability to store deflated text in a zip file.\r\n"
+      "You should not see this text in the file, and it should be smaller than\r\n"
+      "the length of this string by a bit.\r\n"
+      "Goodbye!";
    unsigned int  bazdata = 0xDEADBEEF;
 
    Zip_Create(&zip, "test.zip");
 
    // add some files
-   foo        = Zip_AddFile(&zip, "foo.txt", foodata,          strlen(foodata));
-   bar_folder = Zip_AddFile(&zip, "bar/",    NULL,             0);
-   baz        = Zip_AddFile(&zip, "bar/baz", (byte *)&bazdata, sizeof(unsigned int));
 
-   // set attributes
-   foo->intattr        = 0x01; // is a text file
-   foo->extattr        = 0x20; // set archive flag
-   bar_folder->extattr = 0x10; // set directory flag
-   baz->extattr        = 0x20; // set archive flag
+   // a text file
+   foo = Zip_AddFile(&zip, "foo.txt", (const byte *)foodata, strlen(foodata), ZIP_FILE_BINARY, true);
+   
+   // a folder
+   bar_folder = Zip_AddFile(&zip, "bar/", NULL, 0, ZIP_DIRECTORY, false);
+   
+   // a binary file
+   baz = Zip_AddFile(&zip, "bar/baz", (const byte *)&bazdata, sizeof(unsigned int), ZIP_FILE_BINARY, false);
 
    Zip_Write(&zip);
-
-   return 0;
 }
-#endif
 
 // EOF

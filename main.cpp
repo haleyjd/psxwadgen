@@ -30,7 +30,6 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_qstr.h"
-#include "v_psx.h"
 
 static qstring baseinputdir;
 static qstring outputname("psxdoom.wad");
@@ -85,6 +84,9 @@ static void D_Init()
    D_LoadInputFiles(baseinputdir);
 }
 
+// do zip unit test
+#include "zip_write.h"
+
 //
 // Main Program
 //
@@ -96,6 +98,9 @@ int main(int argc, char **argv)
 
    // perform initialization
    D_Init();
+
+   // TEST: Do zip unit test
+   Zip_UnitTest();
 
    return 0;
 }
