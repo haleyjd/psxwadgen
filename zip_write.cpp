@@ -42,6 +42,8 @@
 //
 // Zip_Create
 //
+// Initialize a ziparchive_t structure.
+// 
 void Zip_Create(ziparchive_t *zip, const char *filename)
 {
    memset(zip, 0, sizeof(ziparchive_t));
@@ -52,12 +54,14 @@ void Zip_Create(ziparchive_t *zip, const char *filename)
 //
 // Zip_AddFile
 //
+// Add a file to a zip archive.
+//
 zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, const byte *data, 
                        uint32_t len, ziptype_e fileType, bool deflate)
 {
    auto file = estructalloc(zipfile_t, 1);
 
-   file->name    = name;
+   file->name    = estrdup(name);
    file->data    = data;
    file->len     = len;
    file->clen    = len;     // start out clen same as len
@@ -175,8 +179,15 @@ static uint32_t M_CRC32HashData(const byte *data, unsigned int len)
 //
 //=============================================================================
 
+//
+// Zip_Compress
+//
+// Customized version of the zlib compress() routine which is suitable for use
+// with PKZIP archives (need to set window bits to -MAX_WBITS so that we get
+// a raw deflate stream, for one).
+//
 static int Zip_Compress(Bytef *dest, uLongf *destLen, const Bytef *source,
-                        uLong sourceLen, int level)
+                        uLong sourceLen)
 {
    z_stream stream;
    int err;
@@ -213,7 +224,10 @@ static int Zip_Compress(Bytef *dest, uLongf *destLen, const Bytef *source,
 //
 // Zip_WriteFile
 //
-void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
+// Write the local file header and file data for a single entry in the zip
+// archive.
+//
+static void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
 {
    ZAutoBuffer buffer;
    uint16_t    date, time;
@@ -248,8 +262,8 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    time = (1 << 5) | (1 << 11);
    date = 16 | (11 << 5) | (15 << 9); 
    
-   ob.WriteUint16(time);       // file time
-   ob.WriteUint16(date);       // file date (11/16/1995)
+   ob.WriteUint16(time); // file time (1:01)
+   ob.WriteUint16(date); // file date (11/16/1995)
 
    if(file->len)
    {
@@ -266,7 +280,7 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
       buffer.alloc(tmpSize, true);      
       auto tmpData = buffer.getAs<byte *>();
 
-      auto res = Zip_Compress(tmpData, &tmpSize, file->data, file->len, 8);
+      auto res = Zip_Compress(tmpData, &tmpSize, file->data, file->len);
       if(res != Z_OK)
          I_Error("ZIP_WriteFile: compress returned error code %d\n", res);
 
@@ -300,7 +314,9 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
 //
 // Zip_WriteDirEntry
 //
-void Zip_WriteDirEntry(ziparchive_t *zip, zipfile_t *file, OutBuffer &ob)
+// Write the central directory entry for a single file in the zip archive.
+//
+static void Zip_WriteDirEntry(ziparchive_t *zip, zipfile_t *file, OutBuffer &ob)
 {
    unsigned short time, date;
    unsigned short namelen;
@@ -350,7 +366,9 @@ void Zip_WriteDirEntry(ziparchive_t *zip, zipfile_t *file, OutBuffer &ob)
 //
 // Zip_WriteEndOfDir
 //
-void Zip_WriteEndOfDir(ziparchive_t *zip, OutBuffer &ob)
+// Write the end of central directory structure.
+//
+static void Zip_WriteEndOfDir(ziparchive_t *zip, OutBuffer &ob)
 {
    ob.WriteUint32(0x06054b50);     // end of central dir signature
    ob.WriteUint16(0);              // number of disk
@@ -364,6 +382,8 @@ void Zip_WriteEndOfDir(ziparchive_t *zip, OutBuffer &ob)
 
 //
 // Zip_Write
+//
+// Output the zip archive to disk.
 //
 void Zip_Write(ziparchive_t *zip)
 {
@@ -401,6 +421,7 @@ void Zip_Write(ziparchive_t *zip)
    ob.Close();
 }
 
+#ifndef NO_UNIT_TESTS
 //
 // Zip_UnitTest
 //
@@ -436,5 +457,6 @@ void Zip_UnitTest()
 
    Zip_Write(&zip);
 }
+#endif
 
 // EOF

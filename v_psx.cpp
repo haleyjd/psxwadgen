@@ -296,6 +296,7 @@ void *VPSXImage::toPatch(size_t &size) const
 // PLAYPAL Conversion
 //
 
+#ifndef NO_UNIT_TESTS
 //
 // V_ExplodePLAYPAL
 //
@@ -331,6 +332,7 @@ void V_ExplodePLAYPAL(WadDirectory &dir)
    // also dump the original lump
    M_WriteFile("PLAYPAL.lmp", buf.get(), buf.getSize());
 }
+#endif
 
 // EOF
 

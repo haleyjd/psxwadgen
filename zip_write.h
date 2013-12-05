@@ -68,6 +68,23 @@ enum ziptype_e
    ZIP_DIRECTORY
 };
 
+// Initialize a zip archive structure.
+void Zip_Create(ziparchive_t *zip, const char *filename);
+
+// Add a new file or directory entry to a zip archive.
+// zip      - an initialized ziparchive structure
+// name     - name of the file within the archive, including any subdirectories
+// data     - source of data for the file, if any (NULL for directories)
+// len      - amount of information pointed to by data in bytes; 0 if none.
+// fileType - one of the ziptype_e enumeration values
+// deflate  - if true, the file will be compressed using zlib deflate;
+//            otherwise, "store" method will be used (direct copy)
+// Returns: A new zipfile_t structure
+zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, const byte *data, 
+                       uint32_t len, ziptype_e fileType, bool deflate);
+
+// Call to write the zip archive to disk.
+void Zip_Write(ziparchive_t *zip);
 
 // Unit test function
 void Zip_UnitTest();
