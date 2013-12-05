@@ -246,7 +246,7 @@ void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    
    // Time is psxwadgen version #; date is PlayStation Doom release date.
    time = (1 << 5) | (1 << 11);
-   date = 5 | (11 << 5) | (15 << 9); 
+   date = 16 | (11 << 5) | (15 << 9); 
    
    ob.WriteUint16(time);       // file time
    ob.WriteUint16(date);       // file date (11/16/1995)
@@ -323,7 +323,7 @@ void Zip_WriteDirEntry(ziparchive_t *zip, zipfile_t *file, OutBuffer &ob)
 
    // Time is psxwadgen version #; date is PSX Doom release date.
    time = (1 << 5) | (1 << 11);
-   date = 5 | (11 << 5) | (15 << 9); 
+   date = 16 | (11 << 5) | (15 << 9); 
    
    ob.WriteUint16(time);       // file time
    ob.WriteUint16(date);       // file date
