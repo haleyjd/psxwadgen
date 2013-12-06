@@ -83,7 +83,7 @@ void rewinddir(DIR *);
 long telldir(DIR *);
 void seekdir(DIR *, long);
 
-#else /* #ifndef _WIN32... */
+#else /* #ifndef _MSC_VER... */
 
 #include <sys/types.h>
 #include <dirent.h>
