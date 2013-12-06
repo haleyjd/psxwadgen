@@ -30,7 +30,7 @@
 #ifndef I_OPNDIR_H__
 #define I_OPNDIR_H__
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 #ifndef FILENAME_MAX
 #define FILENAME_MAX 260
