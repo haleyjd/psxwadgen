@@ -99,7 +99,7 @@ int main(int argc, char **argv)
    D_Init();
 
    // SOUND UNIT TEST
-   S_UnitTest(baseinputdir);
+   S_UnitTest2(baseinputdir);
 
    return 0;
 }

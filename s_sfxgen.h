@@ -30,7 +30,8 @@
 class qstring;
 
 #ifndef NO_UNIT_TESTS
-void S_UnitTest(const qstring &inpath);
+void S_UnitTest1(const qstring &inpath);
+void S_UnitTest2(const qstring &inpath);
 #endif
 
 #endif

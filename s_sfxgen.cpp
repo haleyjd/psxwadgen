@@ -43,6 +43,7 @@
 #include "m_buffer.h"
 #include "m_qstr.h"
 #include "m_strcasestr.h"
+#include "s_sounds.h"
 
 typedef int8_t   s8;
 typedef uint8_t  u8;
@@ -385,11 +386,11 @@ void S_LoadSounds(const qstring &inpath)
 #include "zip_write.h"
 
 //
-// S_UnitTest
+// S_UnitTest1
 //
-// Sound Unit Test
+// Sound Unit Test 1 - write all loaded LCD patches
 //
-void S_UnitTest(const qstring &inpath)
+void S_UnitTest1(const qstring &inpath)
 {
    edefstructvar(ziparchive_t, zip);
 
@@ -413,123 +414,39 @@ void S_UnitTest(const qstring &inpath)
 
    Zip_Write(&zip);
 }
-#endif
 
-#if 0
-#define LINESIZE 80
-
-// give a filelist as argument (a suitable filelist.txt is included)
-// and it will save to subfolder samp/ a bunch of wav files,
-// and print some output to screen
-
-int main (int argc, char **argv)
+//
+// S_UnitTest2
+//
+// Sound Unit Test 2 - write sfx based on psxsfxinfo table.
+//
+void S_UnitTest2(const qstring &inpath)
 {
-  FILE *list;
-  FILE *lcd;
-  
-  char buff[LINESIZE];
-  
-  int i;
-  
-  if (!argv[1])
-  {
-    printf ("give filelist as first argument\n");
-    return 0;
-  }
+   edefstructvar(ziparchive_t, zip);
 
-  list = fopen (argv[1], "r");
+   S_LoadSounds(inpath);
 
-  if (!list)
-  {
-    printf ("couldn't open %s for reading\n", argv[1]);
-    return 0;
-  }
+   Zip_Create(&zip, "soundtest2.pke");
 
-  while (fgets (buff, LINESIZE, list))
-  {
-    // strip newline
-    for (i = 0; i < LINESIZE; i++)
-    {
-      if (buff[i] == '\n')
-      {
-        buff[i] = 0;
-        break;
-      }
-    }
-    if (i == LINESIZE)
-    {
-      printf ("a line in filelist is too long\n");
-      return 0;
-    }
-    else if (i == 0)
-    {
-      printf ("empty line found.  terminating\n");
-      break;
-    }
+   Zip_AddFile(&zip, "sounds/", NULL, 0, ZIP_DIRECTORY, false);
 
-    lcd = fopen (buff, "rb");
+   for(int i = 0; i < NUMPSXSFX; i++)
+   {
+      auto &sfxinfo = psxsfxinfo[i];
+      auto &snd     = sfx[sfxinfo.sfxID];
+      qstring name;
 
-    if (!lcd)
-    {
-      printf ("couldn't open %s for reading\n", buff);
-      return 0;
-    }
-    printf ("reading %s...\n", buff);
+      if(!snd.pcm || !snd.total)
+         continue;
 
-    parsefile (lcd, buff);
+      name << "sounds/" << sfxinfo.name << ".lmp";
 
-    fclose (lcd);
-  }
+      Zip_AddFile(&zip, name.constPtr(), snd.pcm, snd.total, ZIP_FILE_BINARY, true);
+   }
 
-
-
-  // print out prelim results
-  print_results ();
-  
-  printf ("saving raw files\n");
-
-  for (i = 0; i < 256; i++)
-  {
-    if (sfx[i].data)
-    {
-      sprintf (buff, "samp/%02x.raw", i);
-      FILE *fraw = fopen (buff, "wb");
-      if (!fraw)
-      {
-        printf ("Couldn't open %s for writing\n", buff);
-        continue;
-      }
-      fwrite (sfx[i].data, 1, sfx[i].len, fraw);
-      fclose (fraw);
-    }
-  }
-  
-
-  printf ("rendering dpcm to pcm...\n");
-
-  render_pcm ();
-
-  printf ("saving wave files\n");
-
-  for (i = 0; i < 256; i++)
-  {
-    if (sfx[i].pcm)
-    {
-      sprintf (buff, "samp/%02x.wav", i);
-
-      FILE *fwav = fopen (buff, "wb");
-      if (!fwav)
-      {
-        printf ("Couldn't open %s for writing\n", buff);
-        continue;
-      }
-      dumpwav (sfx[i].pcm, sfx[i].nsamp, fwav);
-      fclose (fwav);
-    }
-  }
-
-  return 0;
+   Zip_Write(&zip);
 }
+
 #endif
 
 // EOF
