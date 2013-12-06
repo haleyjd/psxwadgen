@@ -112,11 +112,12 @@ static void S_renderPCM()
       sfx[i].pcm[2] = 0x11; // sample rate 11025 Hz
       sfx[i].pcm[3] = 0x2B;
       
-      // number of samples
-      sfx[i].pcm[4] = (u8)((sfx[i].nsamp >>  0) & 0xff);
-      sfx[i].pcm[5] = (u8)((sfx[i].nsamp >>  8) & 0xff);
-      sfx[i].pcm[6] = (u8)((sfx[i].nsamp >> 16) & 0xff);
-      sfx[i].pcm[7] = (u8)((sfx[i].nsamp >> 24) & 0xff);
+      // number of samples + pad bytes
+      uint32_t paddedlen = sfx[i].nsamp + 32;
+      sfx[i].pcm[4] = (u8)((paddedlen >>  0) & 0xff);
+      sfx[i].pcm[5] = (u8)((paddedlen >>  8) & 0xff);
+      sfx[i].pcm[6] = (u8)((paddedlen >> 16) & 0xff);
+      sfx[i].pcm[7] = (u8)((paddedlen >> 24) & 0xff);
 
       // set predictor values
       s_1 = 0;
