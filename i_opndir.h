@@ -30,6 +30,8 @@
 #ifndef I_OPNDIR_H__
 #define I_OPNDIR_H__
 
+#ifdef _WIN32
+
 #ifndef FILENAME_MAX
 #define FILENAME_MAX 260
 #endif
@@ -80,6 +82,13 @@ int closedir(DIR *);
 void rewinddir(DIR *);
 long telldir(DIR *);
 void seekdir(DIR *, long);
+
+#else /* #ifndef _WIN32... */
+
+#include <sys/types.h>
+#include <dirent.h>
+
+#endif
 
 #endif
 
