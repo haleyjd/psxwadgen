@@ -1,37 +1,20 @@
-CXXFLAGS = -Wall -std=c++0x
-LDFLAGS = -lz
+CXXFLAGS=-Wall -std=c++11
+LDFLAGS=-lz
+PREFIX?=/usr/local
 
-SRCS =                   \
-    d_dehtbl.cpp         \
-    d_io.cpp             \
-    d_wads.cpp           \
-    e_hash.cpp           \
-    e_rtti.cpp           \
-    i_system.cpp         \
-    main.cpp             \
-    m_argv.cpp           \
-    m_buffer.cpp         \
-    metaapi.cpp          \
-    metaqstring.cpp      \
-    m_fcvt.cpp           \
-    m_misc.cpp           \
-    m_qstr.cpp           \
-    m_strcasestr.cpp     \
-    psnprntf.cpp         \
-    s_sfxgen.cpp         \
-    tables.cpp           \
-    v_psx.cpp            \
-    w_formats.cpp        \
-    w_wad.cpp            \
-    w_zip.cpp            \
-    zip_write.cpp        \
-    z_native.cpp
-
+SRCS=$(wildcard *.cpp)
 OBJS=$(patsubst %.cpp,%.o,$(SRCS))
+TRGT=psxwadgen
 
-psxwadgen : $(OBJS)
+$(TRGT): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) -o $@
 
-%.o : %.cpp
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
+clean:
+	rm -f $(TRGT) $(OBJS) *.pke *.str
+
+install: psxwadgen
+	install -d $(DESTDIR)/$(PREFIX)/bin/
+	install $(TRGT) $(DESTDIR)/$(PREFIX)/bin/
