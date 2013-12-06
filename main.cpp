@@ -30,6 +30,7 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_qstr.h"
+#include "v_psx.h"
 #include "w_formats.h"
 
 // Globals
@@ -41,6 +42,38 @@ static qstring baseinputdir;
 static qstring outputname;
 
 //
+// DoExtractMovie
+//
+// Mini-program to extract the MOVIE.STR file
+//
+static void D_ExtractMovie()
+{
+   qstring infile, outfile;
+   int p, start = 0, length = 0;
+
+   // input file name - required
+   if((p = M_CheckParm("-movie")) && p < myargc - 1)
+      infile = myargv[p+1];
+   else
+      I_Error("D_ExtractMovie: need a raw CD image file for input\n");
+
+   // output file name - optional
+   if((p = M_CheckParm("-output")) && p < myargc - 1)
+      outfile = myargv[p+1];
+   else
+      outfile = "movie.str";
+
+   // start and length sector overrides - optional
+   if((p = M_CheckParm("-start")) && p < myargc - 1)
+      start = atoi(myargv[p+1]);
+   if((p = M_CheckParm("-length")) && p < myargc - 1)
+      length = atoi(myargv[p+1]);
+
+   V_ExtractMovie(infile, outfile, start, length);
+   exit(0);
+}
+
+//
 // CheckForParameters
 //
 // Check for command line parameters
@@ -48,6 +81,13 @@ static qstring outputname;
 static void D_CheckForParameters()
 {
    int p;
+
+   // check for movie file extraction
+   if(M_CheckParm("-movie"))
+   {
+      printf("D_ExtractMovie: extracting MOVIE.STR from CD image\n");
+      D_ExtractMovie();
+   }
 
    if((p = M_CheckParm("-input")) && p < myargc - 1)
       baseinputdir = myargv[p+1];

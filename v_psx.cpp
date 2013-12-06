@@ -32,6 +32,7 @@
 
 #include "m_collection.h"
 #include "m_misc.h"
+#include "m_qstr.h"
 #include "m_swap.h"
 #include "r_patch.h"
 #include "v_psx.h"
@@ -333,6 +334,98 @@ void V_ExplodePLAYPAL(WadDirectory &dir)
    M_WriteFile("PLAYPAL.lmp", buf.get(), buf.getSize());
 }
 #endif
+
+//=============================================================================
+//
+// CD-XA Extraction
+//
+// In order to do this, the code below needs access to a raw CD image, so this
+// doesn't run inline with the rest of the program. It is an optional
+// extraction performed separately - no existing ports are capable of making
+// use of the resulting file anyway, but, it can be fed to ffmpeg in order to
+// convert it to a watchable/playable video file.
+//
+
+// Length in bytes of a Mode 2 Yellow Book CD-ROM sector
+#define YB_SECTOR_LEN 2352
+
+// Known offsets of the MOVIE.STR file, in Yellow Book sector numbers, as
+// can be retrieved from programs like IsoBuster.
+#define NA_OFFSET 822L
+
+// Known lengths of the MOVIE.STR file, in sectors
+#define NA_LENGTH 1377L
+
+//
+// V_ExtractMovie
+//
+// Extract raw CD-XA sectors from a CD image file. The default sector at
+// which to start extraction is the known offset for the NA release of the
+// game. However, the starting sector # and total sector count can be 
+// overridden by passing non-zero values in "offset" and "length"
+//
+void V_ExtractMovie(const qstring &infile, const qstring &outfile, 
+                    int offset, int length)
+{
+   FILE *fin, *fout;
+   long sectorOffs = NA_OFFSET; // starting sector #
+   long sectorLen  = NA_LENGTH; // number of sectors
+
+   // optional overrides
+   if(offset != 0)
+      sectorOffs = offset;
+   if(length != 0)
+      sectorLen = length;
+
+   // multiply offset by Mode 2 sector length
+   sectorOffs *= YB_SECTOR_LEN;
+
+   // try to open input
+   if(!(fin = fopen(infile.constPtr(), "rb")))
+      I_Error("V_ExtractMovie: cannot open CD image file for reading\n");
+
+   // try to open output
+   if(!(fout = fopen(outfile.constPtr(), "wb")))
+      I_Error("V_ExtractMovie: cannot open output file for write\n");
+
+   // seek to position in the input file
+   if(fseek(fin, sectorOffs, SEEK_SET))
+      I_Error("V_ExtractMovie: cannot seek to input offset\n");
+
+   long secnum = 0L;
+   while(secnum < sectorLen)
+   {
+      byte buf[YB_SECTOR_LEN];
+      size_t bytesRead;
+      size_t bytesWrote;
+
+      bytesRead = fread(buf, 1, YB_SECTOR_LEN, fin);
+
+      if(bytesRead)
+      {
+         bytesWrote = fwrite(buf, 1, bytesRead, fout);
+         if(bytesWrote != bytesRead)
+            I_Error("V_ExtractMovie: failed output file write\n");
+      }
+
+      // premature EOF?
+      if(bytesRead != (size_t)YB_SECTOR_LEN)
+      {
+         printf(" Warning: video file is truncated at sector %ld\n", secnum);
+         break;
+      }
+      ++secnum;
+   } 
+
+   fclose(fin);
+   fclose(fout);
+
+   printf(" Wrote raw MDEC/XA movie file to '%s'.\n" 
+          " Suggested ffmpeg command line for conversion:\n"
+          " ffmpeg -r 30 -i %s -c:v libx264 -preset slow -crf 18 -c:a libvorbis\n"
+          "  -q:a 5 -pix_fmt yuv420p output.mkv\n",
+          outfile.constPtr(), outfile.constPtr());
+}
 
 // EOF
 

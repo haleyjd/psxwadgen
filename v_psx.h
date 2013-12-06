@@ -29,6 +29,7 @@
 
 #include "z_zone.h"
 
+class qstring;
 class WadDirectory;
 
 //
@@ -64,7 +65,12 @@ public:
    void *toPatch(size_t &size) const;
 };
 
+void V_ExtractMovie(const qstring &infile, const qstring &outfile, 
+                    int offset, int length);
+
+#ifndef NO_UNIT_TESTS
 void V_ExplodePLAYPAL(WadDirectory &dir);
+#endif
 
 #endif
 
