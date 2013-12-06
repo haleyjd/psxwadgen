@@ -48,8 +48,8 @@
 #define	SLASH	_T("\\")
 
 // haleyjd: this should be the only DOOM header needed.
-#include "d_io.h"
-#include "i_opndir.h"
+#include "../d_io.h"
+#include "../i_opndir.h"
 
 //
 // opendir

@@ -84,7 +84,6 @@
     <ClCompile Include="..\d_wads.cpp" />
     <ClCompile Include="..\e_hash.cpp" />
     <ClCompile Include="..\e_rtti.cpp" />
-    <ClCompile Include="..\i_opndir.cpp" />
     <ClCompile Include="..\i_system.cpp" />
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\metaapi.cpp" />
@@ -100,6 +99,7 @@
     <ClCompile Include="..\s_sounds.cpp" />
     <ClCompile Include="..\tables.cpp" />
     <ClCompile Include="..\v_psx.cpp" />
+    <ClCompile Include="..\win32\i_opndir.cpp" />
     <ClCompile Include="..\w_formats.cpp" />
     <ClCompile Include="..\w_wad.cpp" />
     <ClCompile Include="..\w_zip.cpp" />

@@ -30,9 +30,15 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_qstr.h"
+#include "w_formats.h"
+
+// Globals
+
+// Output format
+WResourceFmt gOutputFormat = W_FORMAT_ZIP;
 
 static qstring baseinputdir;
-static qstring outputname("psxdoom.wad");
+static qstring outputname;
 
 //
 // CheckForParameters
@@ -83,9 +89,6 @@ static void D_Init()
    D_LoadInputFiles(baseinputdir);
 }
 
-// TEMP: for sound unit test
-#include "s_sfxgen.h"
-
 //
 // Main Program
 //
@@ -97,9 +100,6 @@ int main(int argc, char **argv)
 
    // perform initialization
    D_Init();
-
-   // SOUND UNIT TEST
-   S_UnitTest2(baseinputdir);
 
    return 0;
 }
