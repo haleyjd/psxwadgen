@@ -195,7 +195,7 @@ static void S_addSFX(u8 *data, unsigned int len, int num)
    memcpy(sfx[num].data, data, len);
 }
 
-static const u8 zeroblock[16];
+static const u8 zeroblock[16] = {0};
 
 //
 // S_parseLCDFile

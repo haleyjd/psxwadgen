@@ -5,3 +5,5 @@ vc2012/*.sdf
 vc2012/*.suo
 vc2012/*.user
 *.bak
+*.o
+psxwadgen
