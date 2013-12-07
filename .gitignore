@@ -6,4 +6,6 @@ vc2012/*.suo
 vc2012/*.user
 *.bak
 *.o
+*.pke
+*.str
 psxwadgen
