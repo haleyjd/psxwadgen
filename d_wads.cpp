@@ -30,6 +30,7 @@
 #include "i_opndir.h"
 #include "i_system.h"
 #include "m_collection.h"
+#include "m_misc.h"
 #include "m_qstr.h"
 #include "w_wad.h"
 
@@ -39,6 +40,9 @@ WadDirectory  psxIWAD;   // IWAD directory
 #ifdef OPEN_LEVEL_PWADS
 PODCollection<WadDirectory *> levelWads; // PWAD directories
 #endif
+
+// Remember the canonical form of the ABIN directory name
+static qstring abin; 
 
 //
 // D_verifyInputDirectory
@@ -59,7 +63,11 @@ static void D_verifyInputDirectory(const qstring &inpath)
    while((entry = readdir(inputDir)))
    {
       if(!strcasecmp(entry->d_name, "ABIN"))
+      {
+         // remember canonical form of ABIN path on disk
+         abin = entry->d_name;
          ++score;
+      }
       if(!strcasecmp(entry->d_name, "CDAUDIO"))
          ++score;
       if(!strcasecmp(entry->d_name, "MAPDIR0"))
@@ -84,7 +92,14 @@ static void D_verifyInputDirectory(const qstring &inpath)
 static void D_openPSXIWAD(const qstring &inpath)
 {
    qstring filepath = inpath;
-   filepath.pathConcatenate("ABIN/PSXDOOM.WAD");
+   qstring psxdoomwad;
+   
+   // look in PSXDOOM/ABIN directory for a PSXDOOM.WAD file
+   filepath.pathConcatenate(abin.constPtr());
+   if(!M_FindCanonicalForm(filepath, "PSXDOOM.WAD", psxdoomwad))
+      I_Error("D_OpenPSXIWAD: PSXDOOM.WAD not found\n");
+
+   filepath.pathConcatenate(psxdoomwad.constPtr());
 
    if(!psxIWAD.addNewPrivateFile(filepath.constPtr()))
       I_Error("D_openPSXIWAD: cannot open '%s'\n", filepath.constPtr());

@@ -35,15 +35,15 @@
 //-----------------------------------------------------------------------------
 
 #include "z_zone.h"
-#include "i_system.h"
 
-#include "m_misc.h"
-#include "m_argv.h"
-#include "w_wad.h"
-
-// headers needed for externs:
 #include "d_dehtbl.h"
 #include "d_io.h"
+#include "i_opndir.h"
+#include "i_system.h"
+#include "m_argv.h"
+#include "m_misc.h"
+#include "m_qstr.h"
+#include "w_wad.h"
 
 //=============================================================================
 //
@@ -484,6 +484,37 @@ char *M_SafeFilePath(const char *pbasepath, const char *newcomponent)
    M_NormalizeSlashes(newstr);
 
    return newstr;
+}
+
+//
+// M_FindCanonicalForm
+//
+// Given an input directory and a desired file name, find the canoncial form
+// of that file name regardless of case and return it in "out".
+// Returns true if the file was found and false otherwise.
+//
+bool M_FindCanonicalForm(const qstring &indir, const char *fn, qstring &out)
+{
+   bool    res = false;
+   DIR    *dir;
+   dirent *ent;
+   
+   if(!(dir = opendir(indir.constPtr())))
+      return false;
+
+   while((ent = readdir(dir)))
+   {
+      if(!strcasecmp(fn, ent->d_name))
+      {
+         out = ent->d_name;
+         res = true;
+         break;
+      }
+   }
+
+   closedir(dir);
+
+   return res;
 }
 
 // EOF

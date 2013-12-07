@@ -38,6 +38,8 @@
 // Output format
 WResourceFmt gOutputFormat = W_FORMAT_ZIP;
 
+// Statics
+
 static qstring baseinputdir;
 static qstring outputname;
 

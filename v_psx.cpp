@@ -405,7 +405,10 @@ void V_ExtractMovie(const qstring &infile, const qstring &outfile,
       {
          bytesWrote = fwrite(buf, 1, bytesRead, fout);
          if(bytesWrote != bytesRead)
-            I_Error("V_ExtractMovie: failed output file write\n");
+         {
+            printf(" Warning: failed output file write\n");
+            break;
+         }
       }
 
       // premature EOF?

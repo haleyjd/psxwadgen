@@ -41,6 +41,7 @@
 #include "i_opndir.h"
 #include "i_system.h"
 #include "m_buffer.h"
+#include "m_misc.h"
 #include "m_qstr.h"
 #include "m_strcasestr.h"
 #include "s_sounds.h"
@@ -53,7 +54,8 @@ typedef int32_t  s32;
 typedef uint32_t u32;
 
 // Path to main LCD
-static const char *mainLCD = "MUSIC/DOOMSFX.LCD";
+
+//static const char *mainLCD = "MUSIC/DOOMSFX.LCD";
 
 // Directories from which to load all MAP??.LCD
 static const char *sndDirs[] =
@@ -299,9 +301,19 @@ static void S_parseLCDFile(InBuffer &f)
 static void S_openMainLCD(const qstring &inpath)
 {
    qstring  fullpath = inpath;
+   qstring  musicdir;
+   qstring  doomsfx;
    InBuffer infile;
 
-   fullpath.pathConcatenate(mainLCD);
+   // look for MUSIC dir in main input directory
+   if(!M_FindCanonicalForm(fullpath, "MUSIC", musicdir))
+      I_Error("S_openMainLCD: cannot find MUSIC directory\n");   
+   fullpath.pathConcatenate(musicdir.constPtr());
+
+   // look for DOOMSFX.LCD file
+   if(!M_FindCanonicalForm(fullpath, "DOOMSFX.LCD", doomsfx))
+      I_Error("S_openMainLCD: cannot find DOOMSFX.LCD file\n");
+   fullpath.pathConcatenate(doomsfx.constPtr());
 
    if(!infile.openFile(fullpath.constPtr(), InBuffer::LENDIAN))
       I_Error("S_openMainLCD: cannot open %s\n", fullpath.constPtr());
@@ -356,7 +368,11 @@ static void S_openAllMapLCDs(const qstring &inpath)
    for(size_t i = 0; i < earrlen(sndDirs); i++)
    {
       qstring dirpath = inpath;
-      dirpath.pathConcatenate(sndDirs[i]);
+      qstring snddir;
+
+      if(!M_FindCanonicalForm(dirpath, sndDirs[i], snddir))
+         continue;
+      dirpath.pathConcatenate(snddir.constPtr());
 
       S_openMapDirLCDs(dirpath);
    }
