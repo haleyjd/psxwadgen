@@ -100,12 +100,8 @@ struct lumpinfo_t
    {
       ns_global,
       ns_sprites,
+      ns_textures,
       ns_flats,
-      ns_colormaps,
-      ns_translations,
-      ns_demos,
-      ns_acs,
-      ns_pads,
       ns_max           // keep this last.
    };
    int li_namespace;

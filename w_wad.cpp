@@ -36,24 +36,16 @@
 
 #include "z_zone.h"
 #include "i_system.h"
-//#include "doomstat.h"
 #include "d_io.h"  // SoM 3/12/2002: moved unistd stuff into d_io.h
 
-//#include "c_io.h"
 #include "d_dehtbl.h"
-//#include "d_files.h"
 #include "m_argv.h"
 #include "m_collection.h"
 #include "m_dllist.h"
-//#include "m_hash.h"
 #include "m_misc.h"
 #include "m_qstr.h"
 #include "m_swap.h"
-//#include "p_skin.h"
-//#include "s_sound.h"
-//#include "v_misc.h"
 #include "w_formats.h"
-//#include "w_hacks.h"
 #include "w_wad.h"
 #include "w_zip.h"
 #include "z_auto.h"
@@ -524,6 +516,8 @@ bool WadDirectory::addWadFile(openwad_t &openData, wfileadd_t &addInfo,
    // Merge into the directory
    for(int i = startlump; i < this->numlumps; i++, lump_p++, fileinfo++)
    {
+      strncpy(lump_p->name, fileinfo->name, 8);
+      
       if(lump_p->name[0] & 0x80) // For psxwadgen, detect compressed lumps
       {
          lump_p->name[0] &= 0x7f;
@@ -544,8 +538,6 @@ bool WadDirectory::addWadFile(openwad_t &openData, wfileadd_t &addInfo,
          lump_p->direct.position += static_cast<size_t>(baseoffset);
       
       lump_p->li_namespace = addInfo.li_namespace;     // killough 4/17/98
-
-      strncpy(lump_p->name, fileinfo->name, 8);
    }
 
 #if 0
@@ -859,14 +851,10 @@ struct nsdata_t
 // namespaces
 static nsdata_t wadNameSpaces[lumpinfo_t::ns_max] =
 {
-   { NULL,      NULL,    lumpinfo_t::ns_global       },
-   { "S_START", "S_END", lumpinfo_t::ns_sprites      },
-   { "F_START", "F_END", lumpinfo_t::ns_flats        },
-   { "C_START", "C_END", lumpinfo_t::ns_colormaps    },
-   { "T_START", "T_END", lumpinfo_t::ns_translations },
-   { NULL,      NULL,    lumpinfo_t::ns_demos        },
-   { "A_START", "A_END", lumpinfo_t::ns_acs          },
-   { NULL,      NULL,    lumpinfo_t::ns_pads         }
+   { NULL,      NULL,    lumpinfo_t::ns_global   },
+   { "S_START", "S_END", lumpinfo_t::ns_sprites  },
+   { "T_START", "T_END", lumpinfo_t::ns_textures }, // PSX specific; is TX_START/TX_END in EE
+   { "F_START", "F_END", lumpinfo_t::ns_flats    },
 };
 
 //
