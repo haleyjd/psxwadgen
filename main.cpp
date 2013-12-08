@@ -30,21 +30,32 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_qstr.h"
+#include "s_sfxgen.h"
 #include "v_psx.h"
 #include "w_formats.h"
+#include "zip_write.h"
+
+// Defines
+
+// Default output file names for supported target formats
+#define DEF_OUTPUTNAME_WAD "psxdoom.wad"
+#define DEF_OUTPUTNAME_ZIP "psxdoom.pke"
 
 // Globals
 
 // Output format
 WResourceFmt gOutputFormat = W_FORMAT_ZIP;
 
+// Output targets
+ziparchive_t gZipArchive; // zip file (ie. pke archive)
+
 // Statics
 
-static qstring baseinputdir;
-static qstring outputname;
+static qstring baseinputdir; // root input directory; ex: J:\PSXDOOM
+static qstring outputname;   // name of output file
 
 //
-// DoExtractMovie
+// D_ExtractMovie
 //
 // Mini-program to extract the MOVIE.STR file
 //
@@ -75,6 +86,30 @@ static void D_ExtractMovie()
    exit(0);
 }
 
+static const char *usagestr =
+"\n"
+"psxwadgen options:\n"
+"\n"
+"-input <dirpath> [-output <filename>]\n"
+"  Generates a psxdoom.wad or psxdoom.pke output file, given the path to the\n"
+"  PSXDOOM directory on a disc or mounted disc image of PlayStation DOOM.\n"
+"\n"
+"-movie <imgfile> [-output <filename>] [-start <secnum>] [-length <seclen>]\n"
+"  Extracts the MOVIE.STR file from a raw CD image. Default output file name\n"
+"  is movie.str; default sector start position is 822 and length is 1377,\n"
+"  suitable for use with a North American release image.\n";
+
+//
+// D_PrintUsage
+//
+// Output documentation on all supported command-line parameters and exit.
+//
+static void D_PrintUsage()
+{
+   puts(usagestr);
+   exit(0);
+}
+
 //
 // CheckForParameters
 //
@@ -83,6 +118,11 @@ static void D_ExtractMovie()
 static void D_CheckForParameters()
 {
    int p;
+   static const char *helpParams[] = { "-help", "-?" };
+
+   // check for help
+   if(M_CheckMultiParm(helpParams, 0))
+      D_PrintUsage();
 
    // check for movie file extraction
    if(M_CheckParm("-movie"))
@@ -96,6 +136,13 @@ static void D_CheckForParameters()
    else
       I_Error("Need a directory name for input!\n");
 
+   // TODO: look for output format parameter
+
+   // set default output filename based on selected output format
+   if(gOutputFormat == W_FORMAT_ZIP)
+      outputname = DEF_OUTPUTNAME_ZIP;
+
+   // allow command-line override
    if((p = M_CheckParm("-output")) && p < myargc - 1)
       outputname = myargv[p+1];
 }
@@ -132,6 +179,83 @@ static void D_Init()
 }
 
 //
+// Output Management
+//
+
+//
+// D_OpenOutputFile
+//
+// Create the output structure that will be passed to other modules to 
+// accumulate data entries (ie., lumps).
+//
+static void D_OpenOutputFile()
+{
+   switch(gOutputFormat)
+   {
+   case W_FORMAT_ZIP:
+      Zip_Create(&gZipArchive, outputname.constPtr());
+      break;
+   default:
+      I_Error("D_OpenOutputFile: unsupported output format value %d\n", 
+              gOutputFormat);
+      break;
+   }
+
+   printf("D_OpenOutputFile: output directed to %s\n", outputname.constPtr());
+}
+
+//
+// D_TransformToZip
+//
+// Perform all steps necessary to create the psxdoom.pke archive.
+//
+static void D_TransformToZip()
+{
+   // sounds
+   S_ProcessSoundsForZip(baseinputdir, &gZipArchive);
+
+   // textures
+   V_ConvertTexturesToZip(psxIWAD, &gZipArchive);
+
+   // flats
+   V_ConvertFlatsToZip(psxIWAD, &gZipArchive);
+}
+
+//
+// D_TransformInput
+//
+// Call the proper routine to transform the input to the output format.
+//
+static void D_TransformInput()
+{
+   switch(gOutputFormat)
+   {
+   case W_FORMAT_ZIP:
+      D_TransformToZip();
+      break;
+   default:
+      break;
+   }
+}
+
+//
+// D_CloseOutputFile
+//
+// Write and close the output file once everything has been added to it.
+//
+static void D_CloseOutputFile()
+{
+   switch(gOutputFormat)
+   {
+   case W_FORMAT_ZIP:
+      Zip_Write(&gZipArchive);
+      break;
+   default:
+      break;
+   }
+}
+
+//
 // Main Program
 //
 int main(int argc, char **argv)
@@ -142,6 +266,15 @@ int main(int argc, char **argv)
 
    // perform initialization
    D_Init();
+
+   // open output
+   D_OpenOutputFile();
+
+   // transform
+   D_TransformInput();
+
+   // close output
+   D_CloseOutputFile();
 
    return 0;
 }

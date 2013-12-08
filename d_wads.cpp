@@ -101,7 +101,7 @@ static void D_openPSXIWAD(const qstring &inpath)
 
    filepath.pathConcatenate(psxdoomwad.constPtr());
 
-   if(!psxIWAD.addNewPrivateFile(filepath.constPtr()))
+   if(!psxIWAD.addNewFile(filepath.constPtr()))
       I_Error("D_openPSXIWAD: cannot open '%s'\n", filepath.constPtr());
 }
 
