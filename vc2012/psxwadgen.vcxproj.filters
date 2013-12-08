@@ -16,6 +16,9 @@
     <Filter Include="Source Files\win32">
       <UniqueIdentifier>{710184f9-769d-42f8-a7c2-3704a4a5b19c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\win32">
+      <UniqueIdentifier>{46ec478c-7ff1-4908-bd96-84fd16c56f9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\d_dehtbl.cpp">
@@ -96,6 +99,9 @@
     <ClCompile Include="..\win32\i_opndir.cpp">
       <Filter>Source Files\win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\v_loading.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\autopalette.h">
@@ -126,9 +132,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\i_opndir.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inttypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\m_argv.h">
@@ -188,9 +191,6 @@
     <ClInclude Include="..\r_patch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\stdint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\tables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -228,6 +228,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\s_sounds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\win32\inttypes.h">
+      <Filter>Header Files\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\win32\stdint.h">
+      <Filter>Header Files\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\v_loading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

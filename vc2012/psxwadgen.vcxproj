@@ -98,6 +98,7 @@
     <ClCompile Include="..\s_sfxgen.cpp" />
     <ClCompile Include="..\s_sounds.cpp" />
     <ClCompile Include="..\tables.cpp" />
+    <ClCompile Include="..\v_loading.cpp" />
     <ClCompile Include="..\v_psx.cpp" />
     <ClCompile Include="..\win32\i_opndir.cpp" />
     <ClCompile Include="..\w_formats.cpp" />
@@ -117,7 +118,6 @@
     <ClInclude Include="..\e_hash.h" />
     <ClInclude Include="..\e_hashkeys.h" />
     <ClInclude Include="..\e_rtti.h" />
-    <ClInclude Include="..\inttypes.h" />
     <ClInclude Include="..\i_opndir.h" />
     <ClInclude Include="..\i_system.h" />
     <ClInclude Include="..\metaadapter.h" />
@@ -139,11 +139,13 @@
     <ClInclude Include="..\m_swap.h" />
     <ClInclude Include="..\psnprntf.h" />
     <ClInclude Include="..\r_patch.h" />
-    <ClInclude Include="..\stdint.h" />
     <ClInclude Include="..\s_sfxgen.h" />
     <ClInclude Include="..\s_sounds.h" />
     <ClInclude Include="..\tables.h" />
+    <ClInclude Include="..\v_loading.h" />
     <ClInclude Include="..\v_psx.h" />
+    <ClInclude Include="..\win32\inttypes.h" />
+    <ClInclude Include="..\win32\stdint.h" />
     <ClInclude Include="..\w_formats.h" />
     <ClInclude Include="..\w_iterator.h" />
     <ClInclude Include="..\w_wad.h" />
