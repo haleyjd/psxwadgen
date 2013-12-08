@@ -36,8 +36,11 @@
 #include "m_swap.h"
 #include "r_patch.h"
 #include "v_psx.h"
+#include "v_loading.h"
 #include "w_wad.h"
+#include "w_iterator.h"
 #include "z_auto.h"
+#include "zip_write.h"
 
 struct psxpic_header_t
 {
@@ -49,7 +52,7 @@ struct psxpic_header_t
 
 #define PSXPIC_HEADER_SIZE (4*sizeof(int16_t))
 
-#define SAFEUINT16(dest, s) dest = SwapShort(*s | (*(s+1) << 8)); ++read
+#define SAFEUINT16(dest, s) dest = SwapShort(*s | (*(s+1) << 8)); read += 2;
 
 //
 // VPSXImage::readImage
@@ -290,6 +293,85 @@ void *VPSXImage::toPatch(size_t &size) const
 
    // Done!
    return output;
+}
+
+//=============================================================================
+//
+// Textures
+//
+
+//
+// V_ConvertTexturesToZip
+//
+// Convert the PSX textures into Doom's patch format and insert them into the
+// zip under the textures/ directory.
+//
+void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   WadNamespaceIterator wni(dir, lumpinfo_t::ns_textures);
+   int numlumps = wni.getNumLumps();
+
+   printf("V_ConvertTextures: converting textures:");
+   V_SetLoading(numlumps/16, true);
+
+   Zip_AddFile(zip, "textures/", NULL, 0, ZIP_DIRECTORY, false);
+
+   int count = 0;
+   for(wni.begin(); wni.current(); wni.next(), count++)
+   {
+      lumpinfo_t *lump = wni.current();
+      VPSXImage img(dir, lump->selfindex);
+      size_t  size = 0;
+      void   *data = img.toPatch(size);
+      qstring name;
+
+      if(!(count & 15))
+         V_LoadingIncrease();
+
+      name << "textures/" << lump->name;
+
+      Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
+                  ZIP_FILE_BINARY, true);
+   }
+}
+
+//=============================================================================
+//
+// Flats
+//
+
+//
+// V_ConvertFlatsToZip
+//
+// PSX graphics are already linear so this is pretty simple.
+//
+void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   WadNamespaceIterator wni(dir, lumpinfo_t::ns_flats);
+   int numlumps = wni.getNumLumps();
+
+   printf("V_ConvertFlats: converting flats:");
+   V_SetLoading(numlumps/4, true);
+
+   Zip_AddFile(zip, "flats/", NULL, 0, ZIP_DIRECTORY, false);
+
+   int count = 0;
+   for(wni.begin(); wni.current(); wni.next(), count++)
+   {
+      lumpinfo_t *lump = wni.current();
+      VPSXImage img(dir, lump->selfindex);
+
+      const uint8_t *data = img.getPixels();
+      qstring name;
+
+      if(!(count & 3))
+         V_LoadingIncrease();
+
+      name << "flats/" << lump->name;
+
+      Zip_AddFile(zip, name.constPtr(), data, img.getWidth()*img.getHeight(),
+                  ZIP_FILE_BINARY, true);
+   }
 }
 
 //=============================================================================

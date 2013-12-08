@@ -31,6 +31,7 @@
 
 class qstring;
 class WadDirectory;
+struct ziparchive_t;
 
 //
 // VPSXImage
@@ -64,6 +65,9 @@ public:
 
    void *toPatch(size_t &size) const;
 };
+
+void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip);
+void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip);
 
 void V_ExtractMovie(const qstring &infile, const qstring &outfile, 
                     int offset, int length);
