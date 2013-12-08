@@ -45,6 +45,8 @@
 #include "m_qstr.h"
 #include "m_strcasestr.h"
 #include "s_sounds.h"
+#include "v_loading.h"
+#include "zip_write.h"
 
 typedef int8_t   s8;
 typedef uint8_t  u8;
@@ -52,10 +54,6 @@ typedef int16_t  s16;
 typedef uint16_t u16;
 typedef int32_t  s32;
 typedef uint32_t u32;
-
-// Path to main LCD
-
-//static const char *mainLCD = "MUSIC/DOOMSFX.LCD";
 
 // Directories from which to load all MAP??.LCD
 static const char *sndDirs[] =
@@ -214,6 +212,8 @@ static void S_parseLCDFile(InBuffer &f)
    u16  nument;
    u16 *entries;
 
+   V_LoadingIncrease();
+
    f.readUint16(nument);
 
    u8 block[16];
@@ -259,9 +259,9 @@ static void S_parseLCDFile(InBuffer &f)
          ++entrynum;
 
          outputalloc = 300000;
-         output = ecalloc(u8 *, 1, outputalloc);
-         insound    = true;
-         outputsize = 0;
+         output      = ecalloc(u8 *, 1, outputalloc);
+         insound     = true;
+         outputsize  = 0;
       }
     
       if(outputsize + 16 >= outputalloc)
@@ -378,29 +378,62 @@ static void S_openAllMapLCDs(const qstring &inpath)
    }
 }
 
+//
+// S_loadSounds
+//
+// Load all sounds from LCD files and then convert them to PCM data.
+//
+static void S_loadSounds(const qstring &inpath)
+{
+   // Load LCDs
+   printf("S_LoadSounds: Loading LCD files:");
+   V_SetLoading(61, true);
+   S_openMainLCD(inpath);
+   S_openAllMapLCDs(inpath);
+
+   // Render PCM
+   printf("S_RenderPCM: Decoding ADPCM data\n");
+   S_renderPCM();
+}
+
 //=============================================================================
 //
 // Interface
 //
 
 //
-// S_LoadSounds
+// S_ProcessSoundsForZip
 //
-// Load all sounds from LCD files and then convert them to PCM data.
+// Read in all the sound data and then output file entries to the zip archive.
 //
-void S_LoadSounds(const qstring &inpath)
+void S_ProcessSoundsForZip(const qstring &inpath, ziparchive_t *zip)
 {
-   // Load LCDs
-   S_openMainLCD(inpath);
-   S_openAllMapLCDs(inpath);
+   // load sounds from all of the LCD files and decode the ADPCM data
+   S_loadSounds(inpath);
 
-   // Render PCM
-   S_renderPCM();
+   Zip_AddFile(zip, "sounds/", NULL, 0, ZIP_DIRECTORY, false);
+
+   for(int i = 0; i < NUMPSXSFX; i++)
+   {
+      auto &sfxinfo = psxsfxinfo[i];
+      auto &snd     = sfx[sfxinfo.sfxID];
+      qstring name;
+
+      if(!snd.pcm || !snd.total)
+         continue;
+
+      name << "sounds/" << sfxinfo.name;
+
+      Zip_AddFile(zip, name.constPtr(), snd.pcm, snd.total, ZIP_FILE_BINARY, true);
+   }
 }
 
-#ifndef NO_UNIT_TESTS
+//=============================================================================
+//
+// Unit Tests
+//
 
-#include "zip_write.h"
+#ifndef NO_UNIT_TESTS
 
 //
 // S_UnitTest1
@@ -411,7 +444,7 @@ void S_UnitTest1(const qstring &inpath)
 {
    edefstructvar(ziparchive_t, zip);
 
-   S_LoadSounds(inpath);
+   S_loadSounds(inpath);
 
    Zip_Create(&zip, "soundtest.pke");
 
@@ -441,7 +474,7 @@ void S_UnitTest2(const qstring &inpath)
 {
    edefstructvar(ziparchive_t, zip);
 
-   S_LoadSounds(inpath);
+   S_loadSounds(inpath);
 
    Zip_Create(&zip, "soundtest2.pke");
 

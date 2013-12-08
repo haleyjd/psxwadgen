@@ -27,7 +27,11 @@
 #ifndef S_SFXGEN_H__
 #define S_SFXGEN_H__
 
-class qstring;
+class  qstring;
+struct ziparchive_t;
+
+// Process sound data and output to a zip archive
+void S_ProcessSoundsForZip(const qstring &inpath, ziparchive_t *zip);
 
 #ifndef NO_UNIT_TESTS
 void S_UnitTest1(const qstring &inpath);
