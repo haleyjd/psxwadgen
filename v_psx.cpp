@@ -42,10 +42,30 @@
 #include "z_auto.h"
 #include "zip_write.h"
 
+// PSX weapon sprites have a special issue in that the game is coded to take
+// the offset in the sprite and use it relative to a point in the center of
+// the screen and at the top of the status bar. We will have to adjust such
+// sprites' offsets in order to have them appear correct in normal ports.
+static const char *weaponSprites[] =
+{
+   "PUNG",
+   "PISG", "PISF",
+   "SHTG", "SHTF",
+   "SHT2",
+   "CHGG", "CHGF",
+   "MISG", "MISF",
+   "SAWG",
+   "PLSG", "PLSF",
+   "BFGG", "BFGF"
+};
+
+#define WEAPON_ORIGIN_X -160
+#define WEAPON_ORIGIN_Y -168
+
 struct psxpic_header_t
 {
-   int16_t top;
    int16_t left;
+   int16_t top;
    int16_t width;
    int16_t height;
 };
@@ -63,8 +83,8 @@ void VPSXImage::readImage(const void *data)
 {
    const uint8_t *read = static_cast<const uint8_t *>(data);
 
-   SAFEUINT16(top,    read);
    SAFEUINT16(left,   read);
+   SAFEUINT16(top,    read);
    SAFEUINT16(width,  read);
    SAFEUINT16(height, read);
 
@@ -82,6 +102,23 @@ void VPSXImage::readImage(const void *data)
 }
 
 //
+// VPSXImage::adjustOffsets
+//
+// Fixes offsets for weapon sprites.
+//
+void VPSXImage::adjustOffsets(const char *name)
+{
+   for(size_t i = 0; i < earrlen(weaponSprites); i++)
+   {
+      if(!strncasecmp(name, weaponSprites[i], strlen(weaponSprites[i])))
+      {
+         left += WEAPON_ORIGIN_X;
+         top  += WEAPON_ORIGIN_Y;
+      }
+   }
+}
+
+//
 // Constructor
 // Taking a lump number in the indicated directory to load.
 //
@@ -90,6 +127,7 @@ VPSXImage::VPSXImage(WadDirectory &dir, int lumpnum)
    ZAutoBuffer buf;
    dir.cacheLumpAuto(lumpnum, buf);
    readImage(buf.get());
+   adjustOffsets(dir.getLumpInfo()[lumpnum]->name);
 }
 
 //
@@ -101,6 +139,7 @@ VPSXImage::VPSXImage(WadDirectory &dir, const char *lumpname)
    ZAutoBuffer buf;
    dir.cacheLumpAuto(lumpname, buf);
    readImage(buf.get());
+   adjustOffsets(lumpname);
 }
 
 class VPatchPost
@@ -293,6 +332,46 @@ void *VPSXImage::toPatch(size_t &size) const
 
    // Done!
    return output;
+}
+
+//=============================================================================
+//
+// Sprites
+//
+
+//
+// V_ConvertSpritesToZip
+//
+// Convert PSX Doom's sprites to Doom's patch format and insert them into the
+// zip under the sprites/ directory.
+//
+void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   WadNamespaceIterator wni(dir, lumpinfo_t::ns_sprites);
+   int numlumps = wni.getNumLumps();
+
+   printf("V_ConvertSprites: converting sprites:");
+   V_SetLoading(numlumps/32, true);
+
+   Zip_AddFile(zip, "sprites/", NULL, 0, ZIP_DIRECTORY, false);
+
+   int count = 0;
+   for(wni.begin(); wni.current(); wni.next(), count++)
+   {
+      lumpinfo_t *lump = wni.current();
+      VPSXImage img(dir, lump->selfindex);
+      size_t  size = 0;
+      void   *data = img.toPatch(size);
+      qstring name;
+
+      if(!(count & 31))
+         V_LoadingIncrease();
+
+      name << "sprites/" << lump->name;
+
+      Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
+                  ZIP_FILE_BINARY, true);
+   }
 }
 
 //=============================================================================

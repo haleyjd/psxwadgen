@@ -50,6 +50,7 @@ protected:
    uint8_t *mask;
 
    void readImage(const void *data);
+   void adjustOffsets(const char *name);
 
 public:
    VPSXImage(WadDirectory &dir, int lumpnum);
@@ -66,6 +67,7 @@ public:
    void *toPatch(size_t &size) const;
 };
 
+void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip);
 

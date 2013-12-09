@@ -214,6 +214,9 @@ static void D_TransformToZip()
    // sounds
    S_ProcessSoundsForZip(baseinputdir, &gZipArchive);
 
+   // sprites
+   V_ConvertSpritesToZip(psxIWAD, &gZipArchive);
+
    // textures
    V_ConvertTexturesToZip(psxIWAD, &gZipArchive);
 
