@@ -1,10 +1,67 @@
 // Emacs style mode select   -*- C++ -*-
 //-----------------------------------------------------------------------------
 //
+// Copyright(C) 2013 James Haley
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+//-----------------------------------------------------------------------------
+//
+// PSX ADPCM Data Decoder (c) 2007 "natt"
+// Modifications for psxwadgen (c) 2013 James Haley
+//
+// Code related to the PSX ADPCM data decoder is available under a different 
+// license. That license appears at the point of the code's inclusion, and 
+// applies ONLY to the code so marked.
+//
+//-----------------------------------------------------------------------------
+//
+// DESCRIPTION:
+//    Code to extract sound effects from the LCD files.
+//
+//-----------------------------------------------------------------------------
+
+#include "z_zone.h"
+
+#include "doomtype.h"
+#include "i_opndir.h"
+#include "i_system.h"
+#include "m_buffer.h"
+#include "m_misc.h"
+#include "m_qstr.h"
+#include "m_strcasestr.h"
+#include "s_sounds.h"
+#include "v_loading.h"
+#include "zip_write.h"
+
+// Directories from which to load all MAP??.LCD
+static const char *sndDirs[] =
+{
+   "SNDMAPS1",
+   "SNDMAPS2",
+   "SNDMAPS3"
+};
+
+//=============================================================================
+//
+// BEGIN LICENSE BLOCK
+//
 // Original author: "natt"
 // Modifications for psxwadgen Copyright(C) 2013 James Haley
 //
-// For this module only:
+// For this section ONLY (up and to END OF LICENSE BLOCK text below):
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,26 +84,7 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//-----------------------------------------------------------------------------
-//
-// DESCRIPTION:
-//    Code to extract sound effects from the LCD files.
-//
-//-----------------------------------------------------------------------------
 
-#include "z_zone.h"
-
-#include "doomtype.h"
-#include "i_opndir.h"
-#include "i_system.h"
-#include "m_buffer.h"
-#include "m_misc.h"
-#include "m_qstr.h"
-#include "m_strcasestr.h"
-#include "s_sounds.h"
-#include "v_loading.h"
-#include "zip_write.h"
 
 typedef int8_t   s8;
 typedef uint8_t  u8;
@@ -54,14 +92,6 @@ typedef int16_t  s16;
 typedef uint16_t u16;
 typedef int32_t  s32;
 typedef uint32_t u32;
-
-// Directories from which to load all MAP??.LCD
-static const char *sndDirs[] =
-{
-   "SNDMAPS1",
-   "SNDMAPS2",
-   "SNDMAPS3"
-};
 
 struct sfx_t
 {
@@ -292,6 +322,17 @@ static void S_parseLCDFile(InBuffer &f)
 
    efree(entries);
 }
+
+//
+// END LICENSE BLOCK
+//
+// All other code in this module is available under terms of the GNU GPL as
+// stated in the file header. Use under incompatible license terms is
+// unacceptable and will not be tolerated. Examples of licenses that are
+// incompatible with the GPL include the Ken Silverman BUILD license, the 
+// Doom Source License, and the Activision EULA. In case you needed a reminder.
+//
+//=============================================================================
 
 //
 // S_openMainLCD
