@@ -33,6 +33,11 @@ class qstring;
 class WadDirectory;
 struct ziparchive_t;
 
+struct rgba_t
+{
+   uint8_t r, g, b, a;
+};
+
 //
 // VPSXImage
 //
@@ -67,9 +72,40 @@ public:
    void *toPatch(size_t &size) const;
 };
 
+// Known PSX PLAYPAL palette numbers
+enum psxpalette_e
+{
+   PAL_NORMAL,
+   PAL_DAMAGE1,
+   PAL_DAMAGE2,
+   PAL_DAMAGE3,
+   PAL_DAMAGE4,
+   PAL_DAMAGE5,
+   PAL_DAMAGE6,
+   PAL_DAMAGE7,
+   PAL_DAMAGE8,
+   PAL_ITEM1,
+   PAL_ITEM2,
+   PAL_ITEM3,
+   PAL_ITEM4,
+   PAL_RADSUIT,
+   PAL_GODMODE,    // Used for godmode instead of a colormap
+   PAL_FIRESKY,    // Used for realtime fire sky effect
+   PAL_LEGALS,     // Used for LEGALS lump
+   PAL_DOOMTITLE,  // Used for DOOM and TITLE lumps
+   PAL_IDCRED1,    // Used for IDCRED1 lump
+   PAL_WMSCRED1,   // Used for WMSCRED1 lump
+   PAL_NUMPLAYPALS
+};
+
+void V_LoadPLAYPAL(WadDirectory &dir);
+void V_GenerateCOLORMAP();
+
 void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip);
+void V_ConvertPLAYPALToZip(ziparchive_t *zip);
+void V_ConvertCOLORMAPToZip(ziparchive_t *zip);
 
 void V_ExtractMovie(const qstring &infile, const qstring &outfile, 
                     int offset, int length);

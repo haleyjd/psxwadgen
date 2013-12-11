@@ -1,7 +1,7 @@
 // Emacs style mode select   -*- C++ -*-
 //-----------------------------------------------------------------------------
 //
-// Copyright(C) 2013 James Haley
+// Copyright(C) 2013 James Haley, Samuel Villarreal
 //
 // Some code derived from SLADE:
 // SLADE - It's a Doom Editor
@@ -31,6 +31,7 @@
 #include "z_zone.h"
 
 #include "m_collection.h"
+#include "m_fixed.h"
 #include "m_misc.h"
 #include "m_qstr.h"
 #include "m_swap.h"
@@ -173,6 +174,7 @@ public:
 // VPSXImage::toPatch
 //
 // Return the image converted to a patch_t-format lump.
+// Mostly straight from SLADE.
 //
 void *VPSXImage::toPatch(size_t &size) const
 {
@@ -349,9 +351,11 @@ void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip)
 {
    WadNamespaceIterator wni(dir, lumpinfo_t::ns_sprites);
    int numlumps = wni.getNumLumps();
+   fixed_t dotstep  = numlumps ? 64 * FRACUNIT / numlumps : 0;
+   fixed_t dotaccum = 0;
 
    printf("V_ConvertSprites: converting sprites:");
-   V_SetLoading(numlumps/32, true);
+   V_SetLoading(64, true);
 
    Zip_AddFile(zip, "sprites/", NULL, 0, ZIP_DIRECTORY, false);
 
@@ -364,14 +368,21 @@ void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip)
       void   *data = img.toPatch(size);
       qstring name;
 
-      if(!(count & 31))
+      dotaccum += dotstep;
+      while(dotaccum >= FRACUNIT)
+      {
          V_LoadingIncrease();
+         dotaccum -= FRACUNIT;
+      }
 
       name << "sprites/" << lump->name;
 
       Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
                   ZIP_FILE_BINARY, true);
    }
+
+   if(dotaccum != 0)
+      V_LoadingIncrease();
 }
 
 //=============================================================================
@@ -389,9 +400,11 @@ void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip)
 {
    WadNamespaceIterator wni(dir, lumpinfo_t::ns_textures);
    int numlumps = wni.getNumLumps();
+   fixed_t dotstep  = numlumps ? 64 * FRACUNIT / numlumps : 0;
+   fixed_t dotaccum = 0;
 
    printf("V_ConvertTextures: converting textures:");
-   V_SetLoading(numlumps/16, true);
+   V_SetLoading(64, true);
 
    Zip_AddFile(zip, "textures/", NULL, 0, ZIP_DIRECTORY, false);
 
@@ -404,14 +417,21 @@ void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip)
       void   *data = img.toPatch(size);
       qstring name;
 
-      if(!(count & 15))
+      dotaccum += dotstep;
+      while(dotaccum >= FRACUNIT)
+      {
          V_LoadingIncrease();
+         dotaccum -= FRACUNIT;
+      }
 
       name << "textures/" << lump->name;
 
       Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
                   ZIP_FILE_BINARY, true);
    }
+
+   if(dotaccum != 0)
+      V_LoadingIncrease();
 }
 
 //=============================================================================
@@ -428,9 +448,11 @@ void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip)
 {
    WadNamespaceIterator wni(dir, lumpinfo_t::ns_flats);
    int numlumps = wni.getNumLumps();
+   fixed_t dotstep  = numlumps ? 64 * FRACUNIT / numlumps : 0;
+   fixed_t dotaccum = 0;
 
    printf("V_ConvertFlats: converting flats:");
-   V_SetLoading(numlumps/4, true);
+   V_SetLoading(64, true);
 
    Zip_AddFile(zip, "flats/", NULL, 0, ZIP_DIRECTORY, false);
 
@@ -443,20 +465,107 @@ void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip)
       const uint8_t *data = img.getPixels();
       qstring name;
 
-      if(!(count & 3))
+      dotaccum += dotstep;
+      while(dotaccum >= FRACUNIT)
+      {
          V_LoadingIncrease();
+         dotaccum -= FRACUNIT;
+      }
 
       name << "flats/" << lump->name;
 
       Zip_AddFile(zip, name.constPtr(), data, img.getWidth()*img.getHeight(),
                   ZIP_FILE_BINARY, true);
    }
+
+   if(dotaccum != 0)
+      V_LoadingIncrease();
 }
 
 //=============================================================================
 //
 // PLAYPAL Conversion
 //
+
+// playpal data in RGB 24-bit format
+static byte   *playpal;
+static size_t  numpals;
+
+//
+// V_LoadPLAYPAL
+//
+// Load the PLAYPAL lump and convert it from PSX RGBA 1555 format to 24-bit.
+// Note that the only colors which ever set the alpha bit in the PSX PLAYPAL 
+// are at index zero, so it is fortunately unnecessary to deal with any other
+// colors being treated as transparent.
+//
+// Special thanks to Samuel Villarreal (Kaiser) for help in understanding the
+// format.
+//
+void V_LoadPLAYPAL(WadDirectory &dir)
+{
+   ZAutoBuffer buf;
+   dir.cacheLumpAuto("PLAYPAL", buf);
+   
+   auto cptr = buf.getAs<uint16_t *>();
+   auto len  = buf.getSize();
+
+   numpals = len / 512;
+   playpal = ecalloc(byte *, 768, numpals);
+   
+   byte *palptr = playpal;
+   for(size_t palnum = 0; palnum < numpals; palnum++)
+   {
+      for(int colnum = 0; colnum < 256; colnum++)
+      {
+         uint16_t val = SwapUShort(*cptr++);
+
+         palptr[3*colnum+0] = (byte)((val & 0x001F) >> 0) * (255 /  31);
+         palptr[3*colnum+1] = (byte)((val & 0x03E0) >> 4) * (255 /  62);
+         palptr[3*colnum+2] = (byte)((val & 0x7C00) >> 8) * (255 / 124);
+      }
+      palptr += 768;
+   }
+}
+
+struct nameforpal_t
+{
+   size_t      palnum; // palette number in PLAYPAL
+   const char *name;   // name of lump
+};
+
+static nameforpal_t LumpNameForPal[] =
+{
+   { PAL_GODMODE,   "PALGOD"   },
+   { PAL_FIRESKY,   "PALFIRE"  },
+   { PAL_LEGALS,    "PALLEGAL" },
+   { PAL_DOOMTITLE, "PALTITLE" },
+   { PAL_IDCRED1,   "PALIDCRD" },
+   { PAL_WMSCRED1,  "PALWMCRD" },
+};
+
+//
+// V_ConvertPLAYPALToZip
+//
+// Place the PLAYPAL lump in the root directory of the zip. Non-standard
+// palettes from the lump will also be saved separately for potential
+// convenience of use.
+//
+void V_ConvertPLAYPALToZip(ziparchive_t *zip)
+{
+   printf("V_ConvertPLAYPAL: Converting palettes.\n");
+   Zip_AddFile(zip, "PLAYPAL", playpal, 768*numpals, ZIP_FILE_BINARY, false);
+
+   for(size_t i = 0; i < earrlen(LumpNameForPal); i++)
+   {
+      auto nameforpal = &LumpNameForPal[i];
+      if(numpals > nameforpal->palnum)
+      {
+         Zip_AddFile(zip, nameforpal->name, playpal + 768 * nameforpal->palnum, 
+                     768, ZIP_FILE_BINARY, false);
+      }
+   }
+}
 
 #ifndef NO_UNIT_TESTS
 //
@@ -495,6 +604,159 @@ void V_ExplodePLAYPAL(WadDirectory &dir)
    M_WriteFile("PLAYPAL.lmp", buf.get(), buf.getSize());
 }
 #endif
+
+//=============================================================================
+//
+// Color Matcher
+//
+// Code is from SLADE.
+//
+
+//
+// V_ColoursFromPLAYPAL
+//
+// Create rgba_t structures for all the entries in a specific playpal.
+//
+void V_ColoursFromPLAYPAL(size_t palnum, rgba_t outpal[256])
+{
+   if(palnum >= numpals)
+      return;
+
+   byte *palbase = playpal + 768*palnum;
+   for(int i = 0; i < 256; i++)
+   {
+      outpal[i].r = palbase[3*i+0];
+      outpal[i].g = palbase[3*i+1];
+      outpal[i].b = palbase[3*i+2];
+   }
+}
+
+static inline double colourDiff(rgba_t colours[256], rgba_t &rgb, int index)
+{
+   double d1 = rgb.r - colours[index].r;
+   double d2 = rgb.g - colours[index].g;
+   double d3 = rgb.b - colours[index].b;
+   return (d1*d1)+(d2*d2)+(d3*d3);
+}
+
+//
+// V_FindNearestColour
+//
+// From SLADE, but tweaked for PSX in two manners:
+// * Default color match should be index 255, not 0.
+// * Never match against color 0.
+//
+int V_FindNearestColour(rgba_t colours[256], rgba_t colour)
+{
+   double min_d = 999999;
+   int    index = 255;
+   double delta;
+
+   for(int a = 1; a < 256; a++)
+   {
+      delta = colourDiff(colours, colour, a);
+
+      // Exact match?
+      if(delta == 0.0)
+         return a;
+      else if(delta < min_d)
+      {
+         min_d = delta;
+         index = a;
+      }
+   }
+
+   return index;
+}
+
+//=============================================================================
+//
+// COLORMAP Generation
+//
+// PSX Doom didn't even have a COLORMAP lump at all because it uses hardware
+// fog to do light diminishing; the default fade color 0 is black. 8-bit DOOM 
+// source ports are going to need a COLORMAP lump however, so we'll generate 
+// one here.
+//
+// NB: Code is largely from SLADE.
+// TODO: Modify light fade to more closely match PSX?
+//
+
+static uint8_t colormap[34*256];
+static float col_greyscale_r = 0.299f;
+static float col_greyscale_g = 0.587f;
+static float col_greyscale_b = 0.114f;
+
+#define GREENMAP 255
+#define GRAYMAP  32
+#define DIMINISH(color, level) color = (uint8_t)((((float)color)*(32.0-level)+16.0)/32.0)
+
+void V_GenerateCOLORMAP()
+{
+   rgba_t palette[256];
+   rgba_t rgb;
+   float  grey;
+
+   V_ColoursFromPLAYPAL(0, palette);
+
+   // Generate 34 maps: the first 32 for diminishing light levels, the 33rd for
+   // the inverted grey map used by invulnerability, and the 34th colormap,
+   // which remains empty and black.
+   for(size_t l = 0; l < 34; l++)
+   {
+      for(size_t c = 0; c < 256; c++)
+      {
+         rgb.r = playpal[c*3+0];
+         rgb.g = playpal[c*3+1];
+         rgb.b = playpal[c*3+2];
+
+         if(l < 32)
+         {
+            // Generate light maps
+            DIMINISH(rgb.r, l);
+            DIMINISH(rgb.g, l);
+            DIMINISH(rgb.b, l);
+         }
+         else if(l == GRAYMAP)
+         {
+            // Generate inverse map
+            grey = ((float)rgb.r/256.0f * col_greyscale_r) + 
+                   ((float)rgb.g/256.0f * col_greyscale_g) + 
+                   ((float)rgb.b/256.0f * col_greyscale_b);
+            grey = 1.0f - grey;
+
+            // Clamp value: with id Software's values, the sum is greater than
+            // 1.0 (0.299+0.587+0.144=1.030). This means the negation above can
+            // give a negative value (for example, with RGB values of 247 or
+            // more, which will not be converted correctly to unsigned 8-bit in 
+            // the rgba_t structure.
+            if(grey < 0.0f)
+               grey = 0.0f;
+            rgb.r = rgb.g = rgb.b = (uint8_t)(grey*255);
+         }
+         else
+         {
+            // Fill with 0
+            rgb.r = playpal[0];
+            rgb.g = playpal[1];
+            rgb.b = playpal[2];
+         }
+
+         colormap[256*l+c] = V_FindNearestColour(palette, rgb);
+      }
+   }
+}
+
+//
+// V_ConvertCOLORMAPToZip
+//
+// Write the COLORMAP lump in the root of a zip archive.
+//
+void V_ConvertCOLORMAPToZip(ziparchive_t *zip)
+{
+   printf("V_ConvertCOLORMAP: Writing COLORMAP lump.\n");
+   Zip_AddFile(zip, "COLORMAP", (byte *)colormap, 34*256, ZIP_FILE_BINARY, false);
+}
 
 //=============================================================================
 //
