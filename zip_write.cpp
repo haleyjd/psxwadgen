@@ -28,6 +28,7 @@
 
 #include "i_system.h"
 #include "m_buffer.h"
+#include "v_loading.h"
 #include "z_auto.h"
 #include "zip_write.h"
 
@@ -397,6 +398,7 @@ void Zip_Write(ziparchive_t *zip)
 
    while(curfile)
    {
+      V_ProgressSpinner();
       Zip_WriteFile(curfile, ob);
       curfile = curfile->next;
    }
@@ -410,6 +412,7 @@ void Zip_Write(ziparchive_t *zip)
 
    while(curfile)
    {
+      V_ProgressSpinner();
       Zip_WriteDirEntry(zip, curfile, ob);
       curfile = curfile->next;
    }
