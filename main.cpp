@@ -176,6 +176,14 @@ static void D_Init()
    // Load PSX wad files from input directory
    printf("D_LoadInputFiles: Loading PSX wad files...\n");
    D_LoadInputFiles(baseinputdir);
+
+   // Load PLAYPAL
+   printf("V_LoadPLAYPAL: Decompressing palettes.\n");
+   V_LoadPLAYPAL(psxIWAD);
+
+   // Generate COLORMAP from palette 0
+   printf("V_GenerateCOLORMAP: Generating colormap data.\n");
+   V_GenerateCOLORMAP();
 }
 
 //
@@ -222,6 +230,10 @@ static void D_TransformToZip()
 
    // flats
    V_ConvertFlatsToZip(psxIWAD, &gZipArchive);
+
+   // palettes and color lumps
+   V_ConvertPLAYPALToZip(&gZipArchive);
+   V_ConvertCOLORMAPToZip(&gZipArchive);
 }
 
 //
@@ -251,7 +263,9 @@ static void D_CloseOutputFile()
    switch(gOutputFormat)
    {
    case W_FORMAT_ZIP:
+      printf("Writing output... ");
       Zip_Write(&gZipArchive);
+      printf("\nSuccessfully created output file '%s'\n", gZipArchive.filename);
       break;
    default:
       break;
