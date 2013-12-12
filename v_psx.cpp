@@ -691,6 +691,11 @@ static float col_greyscale_b = 0.114f;
 #define GRAYMAP  32
 #define DIMINISH(color, level) color = (uint8_t)((((float)color)*(32.0-level)+16.0)/32.0)
 
+//
+// V_GenerateCOLORMAP
+//
+// Code from SLADE to generate a full set of 34 colormaps from PLAYPAL #0.
+//
 void V_GenerateCOLORMAP()
 {
    rgba_t palette[256];
@@ -754,7 +759,7 @@ void V_GenerateCOLORMAP()
 //
 void V_ConvertCOLORMAPToZip(ziparchive_t *zip)
 {
-   printf("V_ConvertCOLORMAP: Writing COLORMAP lump.\n");
+   printf("V_ConvertCOLORMAP: Adding COLORMAP lump.\n");
    Zip_AddFile(zip, "COLORMAP", (byte *)colormap, 34*256, ZIP_FILE_BINARY, false);
 }
 
@@ -766,7 +771,20 @@ void V_ConvertCOLORMAPToZip(ziparchive_t *zip)
 // doesn't run inline with the rest of the program. It is an optional
 // extraction performed separately - no existing ports are capable of making
 // use of the resulting file anyway, but, it can be fed to ffmpeg in order to
-// convert it to a watchable/playable video file.
+// convert it into a watchable/listenable video file - some media players will
+// even play it directly without transcoding.
+//
+// This is necessary because PSX MDEC videos and XA audio channels are written
+// to the CD in a pseudo-standard variant of Yellow Book Mode 2 (called CD-XA,
+// as mentioned above). Though it has the same sector size, the internal layout
+// of the sector is different and discards most of the error correction data
+// in a standard Mode 2 sector. Pretty much no PC CD-ROM driver, nor any common
+// image mounting software, understands this sector format and either issues IO 
+// errors or returns corrupt data if access attempts are made through file
+// system APIs. Reading raw from an actual disc or mounted image is additionally
+// too complicated; PSX emulators contain thousands of lines of code to do that
+// just on Windows alone, using low-level ioctl calls. Out-of-scope for this
+// project, so I offer this direct extraction capability as a compromise.
 //
 
 // Length in bytes of a Mode 2 Yellow Book CD-ROM sector

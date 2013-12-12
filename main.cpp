@@ -121,7 +121,7 @@ static void D_CheckForParameters()
    static const char *helpParams[] = { "-help", "-?" };
 
    // check for help
-   if(M_CheckMultiParm(helpParams, 0))
+   if(myargc < 2 || M_CheckMultiParm(helpParams, 0))
       D_PrintUsage();
 
    // check for movie file extraction
