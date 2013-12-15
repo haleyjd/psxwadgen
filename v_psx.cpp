@@ -520,9 +520,9 @@ void V_LoadPLAYPAL(WadDirectory &dir)
       {
          uint16_t val = SwapUShort(*cptr++);
 
-         palptr[3*colnum+0] = (byte)((val & 0x001F) >> 0) * (255 /  31);
-         palptr[3*colnum+1] = (byte)((val & 0x03E0) >> 4) * (255 /  62);
-         palptr[3*colnum+2] = (byte)((val & 0x7C00) >> 8) * (255 / 124);
+         palptr[3*colnum+0] = (byte)(((val & 0x001F) << 3) + 7);
+         palptr[3*colnum+1] = (byte)(((val & 0x03E0) >> 2) + 7);
+         palptr[3*colnum+2] = (byte)(((val & 0x7C00) >> 7) + 7);
       }
       palptr += 768;
    }
@@ -590,9 +590,9 @@ void V_ExplodePLAYPAL(WadDirectory &dir)
       {
          uint16_t val = *cptr++;
 
-         convPal[3*colnum+0] = (int)((val & 0x001F) >> 0) * (255 /  31);
-         convPal[3*colnum+1] = (int)((val & 0x03E0) >> 4) * (255 /  62);
-         convPal[3*colnum+2] = (int)((val & 0x7C00) >> 8) * (255 / 124);
+         convPal[3*colnum+0] = (uint8_t)(((val & 0x001F) << 3) + 7);
+         convPal[3*colnum+1] = (uint8_t)(((val & 0x03E0) >> 2) + 7);
+         convPal[3*colnum+2] = (uint8_t)(((val & 0x7C00) >> 7) + 7);
       }
       palname[7] = '0' + palnum/10;
       palname[8] = '0' + palnum%10;
@@ -679,7 +679,7 @@ int V_FindNearestColour(rgba_t colours[256], rgba_t colour)
 // one here.
 //
 // NB: Code is largely from SLADE.
-// TODO: Modify light fade to more closely match PSX?
+// DONE: Modified light fade to more closely match PSX (4/9 factor on level)
 //
 
 static uint8_t colormap[34*256];
@@ -689,7 +689,7 @@ static float col_greyscale_b = 0.114f;
 
 #define GREENMAP 255
 #define GRAYMAP  32
-#define DIMINISH(color, level) color = (uint8_t)((((float)color)*(32.0-level)+16.0)/32.0)
+#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(4.0f*(float)level/9.0f))+16.0f)/32.0f)
 
 //
 // V_GenerateCOLORMAP
@@ -761,6 +761,46 @@ void V_ConvertCOLORMAPToZip(ziparchive_t *zip)
 {
    printf("V_ConvertCOLORMAP: Adding COLORMAP lump.\n");
    Zip_AddFile(zip, "COLORMAP", (byte *)colormap, 34*256, ZIP_FILE_BINARY, false);
+}
+
+//=============================================================================
+//
+// LIGHTS
+//
+// We convert the LIGHTS lump into a 768-byte palette, as SLADE can
+// deal with that format.
+//
+
+byte lights[768];
+
+void V_LoadLIGHTS(WadDirectory &dir)
+{
+   ZAutoBuffer buf;
+   dir.cacheLumpAuto("LIGHTS", buf);
+
+   if(buf.getSize() != 1024)
+      I_Error("V_LoadLIGHTS: invalid LIGHTS lump!\n");
+
+   auto inptr  = buf.getAs<byte *>();
+   auto outptr = lights;
+   for(int i = 0; i < 256; i++)
+   {
+      *outptr++ = *inptr++;
+      *outptr++ = *inptr++;
+      *outptr++ = *inptr++;
+      ++inptr; // discard alpha
+   }
+}
+
+//
+// V_ConvertLIGHTSToZip
+//
+// Write the LIGHTS lump in the root of a zip archive.
+//
+void V_ConvertLIGHTSToZip(ziparchive_t *zip)
+{
+   printf("V_ConvertLIGHTS: Adding PALLIGHT lump.\n");
+   Zip_AddFile(zip, "PALLIGHT", lights, 768, ZIP_FILE_BINARY, false);
 }
 
 //=============================================================================

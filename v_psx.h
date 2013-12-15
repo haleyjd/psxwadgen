@@ -100,12 +100,14 @@ enum psxpalette_e
 
 void V_LoadPLAYPAL(WadDirectory &dir);
 void V_GenerateCOLORMAP();
+void V_LoadLIGHTS(WadDirectory &dir);
 
 void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertPLAYPALToZip(ziparchive_t *zip);
 void V_ConvertCOLORMAPToZip(ziparchive_t *zip);
+void V_ConvertLIGHTSToZip(ziparchive_t *zip);
 
 void V_ExtractMovie(const qstring &infile, const qstring &outfile, 
                     int offset, int length);
