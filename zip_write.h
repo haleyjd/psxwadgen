@@ -45,6 +45,7 @@ struct zipfile_t
    uint32_t    extattr; // external attributes
    uint16_t    intattr; // internal attributes
    bool        deflate; // if true, use deflate compression
+   const char *diskfn;  // if non-NULL, path of a file to read in and write
 };
 
 //
@@ -79,15 +80,28 @@ void Zip_Create(ziparchive_t *zip, const char *filename);
 // fileType - one of the ziptype_e enumeration values
 // deflate  - if true, the file will be compressed using zlib deflate;
 //            otherwise, "store" method will be used (direct copy)
-// Returns: A new zipfile_t structure
+// Returns: A new zipfile_t structure.
 zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, const byte *data, 
                        uint32_t len, ziptype_e fileType, bool deflate);
+
+// Add a file on disk as an entry to a zip archive. The file will not be
+// buffered in memory until the zip file is being written out, and then only
+// while that individual entry is being written.
+// zip     - an initialized ziparchive structure
+// name    - name of the file within the archive, including any subdirectories
+// path    - path of the source file on disk
+// deflate - if true, file will be deflated; otherwise, stored.
+// Returns: A new zipfile_t structure.
+zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, 
+                       const char *path, bool deflate);
 
 // Call to write the zip archive to disk.
 void Zip_Write(ziparchive_t *zip);
 
+#ifndef NO_UNIT_TESTS
 // Unit test function
 void Zip_UnitTest();
+#endif
 
 #endif
 

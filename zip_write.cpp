@@ -98,6 +98,37 @@ zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, const byte *data,
    return file;
 }
 
+//
+// Zip_AddFile
+//
+// Add a file on disk to a zip archive.
+//
+zipfile_t *Zip_AddFile(ziparchive_t *zip, const char *name, 
+                       const char *path, bool deflate)
+{
+   auto file = estructalloc(zipfile_t, 1);
+
+   file->name    = estrdup(name);
+   file->diskfn  = estrdup(path);
+   file->deflate = deflate;
+
+   // Does anything actually pay attention to these? Oh well.
+   file->extattr = 0x20; // set archive flag
+
+   if(zip->last)
+   {
+      zip->last->next = file;
+      zip->last = file;
+   }
+   else
+      zip->files = zip->last = file;
+
+   zip->fcount++;
+
+   return file;
+}
+
+
 //=============================================================================
 //
 // CRC routine
@@ -223,6 +254,54 @@ static int Zip_Compress(Bytef *dest, uLongf *destLen, const Bytef *source,
 }
 
 //
+// Zip_ReadDiskFile
+//
+// Read a file on disk into memory temporarily to copy it into the zip file.
+//
+static void Zip_ReadDiskFile(zipfile_t *file)
+{
+   FILE *f;
+   long  size;
+
+   if(!(f = fopen(file->diskfn, "rb")))
+      I_Error("Zip_ReadDiskFile: cannot open file %s\n", file->diskfn);
+
+   // get size
+   if(fseek(f, 0, SEEK_END))
+      I_Error("Zip_ReadDiskFile: cannot seek to end of %s\n", file->diskfn);
+   size = ftell(f);
+   if(size <= 0)
+      return;
+   if(fseek(f, 0, SEEK_SET))
+      I_Error("Zip_ReadDiskFile: cannot seek back on %s\n", file->diskfn);
+
+   // read in the file
+   void *buffer = emalloc(void *, (size_t)size);
+   if(fread(buffer, 1, size, f) != size)
+      I_Error("Zip_ReadDiskFile: short read on file %s\n", file->diskfn);
+   fclose(f);
+
+   file->data = static_cast<const byte *>(buffer);
+   file->len  = static_cast<uint32_t    >(size);
+   file->clen = file->len;
+}
+
+//
+// Zip_FreeDiskBuffer
+//
+// Free temporary buffer used to load a file from disk.
+//
+static void Zip_FreeDiskBuffer(zipfile_t *file)
+{
+   if(file->data)
+   {
+      auto ptr = const_cast<byte *>(file->data);
+      efree(ptr);
+      file->data = NULL;
+   }
+}
+
+//
 // Zip_WriteFile
 //
 // Write the local file header and file data for a single entry in the zip
@@ -235,6 +314,10 @@ static void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    uint16_t    namelen;
    const byte *data;
    uint32_t    len;
+
+   // if it is a disk file, open up the file
+   if(file->diskfn)
+      Zip_ReadDiskFile(file);
 
    // Can't deflate an empty file
    if(!file->len || !file->data)
@@ -310,6 +393,10 @@ static void Zip_WriteFile(zipfile_t *file, OutBuffer &ob)
    // write file contents (stored or deflated)
    if(len)
       ob.Write(data, len);
+
+   // if was a disk file, try freeing the buffer
+   if(file->diskfn)
+      Zip_FreeDiskBuffer(file);
 }
 
 //
