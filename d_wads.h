@@ -30,11 +30,15 @@
 
 #include "w_wad.h"
 
-class qstring;
+class  qstring;
+struct ziparchive_t;
 
 void D_LoadInputFiles(const qstring &inpath);
+void D_AddMapsToZip(ziparchive_t *zip, const qstring &inpath);
 
 extern WadDirectory psxIWAD;
+
+
 
 #endif
 

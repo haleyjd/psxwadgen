@@ -184,6 +184,10 @@ static void D_Init()
    // Generate COLORMAP from palette 0
    printf("V_GenerateCOLORMAP: Generating colormap data.\n");
    V_GenerateCOLORMAP();
+
+   // Load LIGHTS
+   printf("V_LoadLIGHTS: Converting LIGHTS to palette.\n");
+   V_LoadLIGHTS(psxIWAD);
 }
 
 //
@@ -234,6 +238,10 @@ static void D_TransformToZip()
    // palettes and color lumps
    V_ConvertPLAYPALToZip(&gZipArchive);
    V_ConvertCOLORMAPToZip(&gZipArchive);
+   V_ConvertLIGHTSToZip(&gZipArchive);
+
+   // maps
+   D_AddMapsToZip(&gZipArchive, baseinputdir);
 }
 
 //
