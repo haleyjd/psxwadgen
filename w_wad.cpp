@@ -674,10 +674,12 @@ bool WadDirectory::addFile(wfileadd_t &addInfo)
 
    // Show adding message if at startup and not a private directory or 
    // in-memory wad
-   //if(!(addInfo.flags & (WFA_PRIVATE|WFA_INMEMORY)) && this->ispublic)
-   //{
+   /*
+   if(!(addInfo.flags & (WFA_PRIVATE|WFA_INMEMORY)) && this->ispublic)
+   {
       printf(" adding %s\n", openData.filename);   // killough 8/8/98
-   //}
+   }
+   */
 
    // Call the appropriate file directory addition routine for this format
 #ifdef RANGECHECK
