@@ -29,6 +29,7 @@
 
 #include "i_opndir.h"
 #include "i_system.h"
+#include "m_binary.h"
 #include "m_collection.h"
 #include "m_misc.h"
 #include "m_qstr.h"
@@ -156,6 +157,44 @@ static void D_openLevelPWADs(const qstring &inpath)
 }
 #endif
 
+#ifndef NO_UNIT_TESTS
+struct maplinedef_s
+{
+  int16_t v1;
+  int16_t v2;
+  int16_t flags;
+  int16_t special;
+  int16_t tag;
+  int16_t sidenum[2];  // sidenum[1] will be -1 if one sided
+};
+
+//
+// D_dumpLineFlags
+//
+// Function to output all the lines' flags in a map, for development purposes
+//
+static void D_dumpLineFlags(const char *filename, void *lines, size_t size)
+{
+   auto   lineptr  = static_cast<byte *>(lines);
+   size_t numlines = size / 14;
+
+   FILE *f = fopen("lineflags.txt", "a");
+   if(!f)
+      return;
+
+   for(size_t i = 0; i < numlines; i++)
+   {
+      lineptr += 4; // skip v1, v2
+      uint16_t flags = GetBinaryUWord(&lineptr);
+      if(flags & (~0x1FF))
+         fprintf(f, "%s: line %5d: %08x\n", filename, (int)i, (unsigned int)flags&(~0x1FF));
+      lineptr += 8; // skip special, tag, sidenum x 2
+   }
+
+   fclose(f);
+}
+#endif
+
 #define PUTLONG(b, l) \
    *(b + 0) = (byte)((l >>  0) & 0xff); \
    *(b + 1) = (byte)((l >>  8) & 0xff); \
@@ -214,6 +253,8 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
       {
          ZAutoBuffer buf;
          dir.cacheLumpAuto(lump->selfindex, buf);
+         if(!strcasecmp(lump->name, "LINEDEFS")) // TEST
+            D_dumpLineFlags(filename.constPtr(), buf.get(), buf.getSize());
          memcpy(inptr, buf.get(), lump->size);
          inptr += lump->size;
       }
