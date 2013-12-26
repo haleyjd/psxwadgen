@@ -520,9 +520,9 @@ void V_LoadPLAYPAL(WadDirectory &dir)
       {
          uint16_t val = SwapUShort(*cptr++);
 
-         palptr[3*colnum+0] = (byte)(((val & 0x001F) << 3) + 7);
-         palptr[3*colnum+1] = (byte)(((val & 0x03E0) >> 2) + 7);
-         palptr[3*colnum+2] = (byte)(((val & 0x7C00) >> 7) + 7);
+         palptr[3*colnum+0] = (byte)(((val & 0x001F) << 3)/* + 7*/);
+         palptr[3*colnum+1] = (byte)(((val & 0x03E0) >> 2)/* + 7*/);
+         palptr[3*colnum+2] = (byte)(((val & 0x7C00) >> 7)/* + 7*/);
       }
       palptr += 768;
    }
@@ -689,7 +689,8 @@ static float col_greyscale_b = 0.114f;
 
 #define GREENMAP 255
 #define GRAYMAP  32
-#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(4.0f*(float)level/9.0f))+16.0f)/32.0f)
+//#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(4.0f*(float)level/9.0f))+16.0f)/32.0f)
+#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(5.0f*(float)level/9.0f))+16.0f)/32.0f)
 
 //
 // V_GenerateCOLORMAP
