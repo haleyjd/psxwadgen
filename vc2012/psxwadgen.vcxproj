@@ -124,6 +124,7 @@
     <ClInclude Include="..\metaapi.h" />
     <ClInclude Include="..\metaqstring.h" />
     <ClInclude Include="..\m_argv.h" />
+    <ClInclude Include="..\m_binary.h" />
     <ClInclude Include="..\m_buffer.h" />
     <ClInclude Include="..\m_collection.h" />
     <ClInclude Include="..\m_compare.h" />

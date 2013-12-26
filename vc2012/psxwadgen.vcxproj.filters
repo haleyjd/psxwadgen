@@ -239,5 +239,8 @@
     <ClInclude Include="..\v_loading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\m_binary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
