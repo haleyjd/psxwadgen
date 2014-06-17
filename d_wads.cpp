@@ -253,8 +253,10 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
       {
          ZAutoBuffer buf;
          dir.cacheLumpAuto(lump->selfindex, buf);
+#if 0
          if(!strcasecmp(lump->name, "LINEDEFS")) // TEST
             D_dumpLineFlags(filename.constPtr(), buf.get(), buf.getSize());
+#endif
          memcpy(inptr, buf.get(), lump->size);
          inptr += lump->size;
       }
