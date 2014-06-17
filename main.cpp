@@ -26,6 +26,7 @@
 
 #include "z_zone.h"
 
+#include "d_scripts.h"
 #include "d_wads.h"
 #include "i_system.h"
 #include "m_argv.h"
@@ -242,6 +243,9 @@ static void D_TransformToZip()
 
    // maps
    D_AddMapsToZip(&gZipArchive, baseinputdir);
+
+   // scripts
+   D_ProcessScriptsForZip(&gZipArchive);
 }
 
 //

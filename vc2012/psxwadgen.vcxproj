@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClCompile Include="..\d_dehtbl.cpp" />
     <ClCompile Include="..\d_io.cpp" />
+    <ClCompile Include="..\d_scripts.cpp" />
     <ClCompile Include="..\d_wads.cpp" />
     <ClCompile Include="..\e_hash.cpp" />
     <ClCompile Include="..\e_rtti.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="..\d_dwfile.h" />
     <ClInclude Include="..\d_io.h" />
     <ClInclude Include="..\d_keywds.h" />
+    <ClInclude Include="..\d_scripts.h" />
     <ClInclude Include="..\d_wads.h" />
     <ClInclude Include="..\e_hash.h" />
     <ClInclude Include="..\e_hashkeys.h" />
