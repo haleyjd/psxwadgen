@@ -45,6 +45,15 @@ struct rgba_t
 //
 class VPSXImage : public ZoneObject
 {
+public:
+   struct rect_t
+   {
+      int16_t x;
+      int16_t y;
+      int16_t width;
+      int16_t height;
+   };
+
 protected:
    int16_t top;
    int16_t left;
@@ -60,6 +69,8 @@ protected:
 public:
    VPSXImage(WadDirectory &dir, int lumpnum);
    VPSXImage(WadDirectory &dir, const char *lumpname);
+   VPSXImage(const VPSXImage &parent, const rect_t &subrect);
+   ~VPSXImage();
 
    int16_t getTop()    const { return top;    }
    int16_t getLeft()   const { return left;   }
@@ -68,6 +79,13 @@ public:
    
    const uint8_t *getPixels() const { return pixels; }
    const uint8_t *getMask()   const { return mask;   }
+
+   uint8_t *releasePixels()
+   {
+      uint8_t *ret = pixels;
+      pixels = NULL;
+      return ret;
+   }
 
    void *toPatch(size_t &size) const;
 };
@@ -105,6 +123,7 @@ void V_LoadLIGHTS(WadDirectory &dir);
 void V_ConvertSpritesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertTexturesToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip);
+void V_ConvertGraphicsToZip(WadDirectory &dir, ziparchive_t *zip);
 void V_ConvertPLAYPALToZip(ziparchive_t *zip);
 void V_ConvertCOLORMAPToZip(ziparchive_t *zip);
 void V_ConvertLIGHTSToZip(ziparchive_t *zip);

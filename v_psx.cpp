@@ -143,6 +143,55 @@ VPSXImage::VPSXImage(WadDirectory &dir, const char *lumpname)
    adjustOffsets(lumpname);
 }
 
+//
+// Constructor for sub-image; pulls a rectangular region from the parent
+// image and makes it into its own surface.
+//
+VPSXImage::VPSXImage(const VPSXImage &parent, const rect_t &subrect)
+{
+   // test for subregion validity
+   if(subrect.x < 0 || subrect.x + subrect.width  > parent.width ||
+      subrect.y < 0 || subrect.y + subrect.height > parent.height)
+      I_Error("VPSXImage: invalid subregion for child image\n");
+   
+   top    = 0;
+   left   = 0;
+   width  = subrect.width;
+   height = subrect.height;
+
+   pixels = ecalloc(uint8_t *, width, height);
+   mask   = ecalloc(uint8_t *, width, height);
+   
+   int16_t dsty  = 0;
+   int16_t srcy1 = subrect.y;
+   int16_t srcy2 = subrect.y + subrect.height;
+   do
+   {
+      uint8_t *psrc = parent.pixels + srcy1 * parent.width + subrect.x;
+      uint8_t *msrc = parent.mask   + srcy1 * parent.width + subrect.x;
+      uint8_t *pdst = pixels + dsty * width;
+      uint8_t *mdst = mask   + dsty * width;
+      memcpy(pdst, psrc, width);
+      memcpy(mdst, msrc, width);
+      ++dsty;
+      ++srcy1;
+   }
+   while(srcy1 != srcy2);
+}
+
+//
+// Destructor
+//
+VPSXImage::~VPSXImage()
+{
+   if(pixels)
+      efree(pixels);
+   if(mask)
+      efree(mask);
+
+   pixels = mask = nullptr;
+}
+
 class VPatchPost
 {
 public:
@@ -462,7 +511,8 @@ void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip)
       lumpinfo_t *lump = wni.current();
       VPSXImage img(dir, lump->selfindex);
 
-      const uint8_t *data = img.getPixels();
+      // take ownership of the pixel data
+      const uint8_t *data = img.releasePixels();
       qstring name;
 
       dotaccum += dotstep;
@@ -480,6 +530,132 @@ void V_ConvertFlatsToZip(WadDirectory &dir, ziparchive_t *zip)
 
    if(dotaccum != 0)
       V_LoadingIncrease();
+}
+
+//=============================================================================
+//
+// Graphics
+//
+
+// The STATUS texture is a 256x256 PSX image containing all of the status bar
+// and HUD graphics. This structure and the table of them below holds data on
+// how to handle its decomposition into individual resources.
+struct statusregion_t
+{
+   const char *lumpname;   // destination lump
+   VPSXImage::rect_t rect; // rectangle on the STATUS texture
+};
+
+static statusregion_t StatusRegions[] =
+{
+   // "small" HUD font characters
+   { "STCFN033", {   0, 168, 8, 8 } }, // !
+   { "STCFN034", {   8, 168, 8, 8 } }, // "
+   { "STCFN035", {  16, 168, 8, 8 } }, // #
+   { "STCFN036", {  24, 168, 8, 8 } }, // $
+   { "STCFN037", {  32, 168, 8, 8 } }, // %
+   { "STCFN038", {  40, 168, 8, 8 } }, // &
+   { "STCFN039", {  48, 168, 8, 8 } }, // '
+   { "STCFN040", {  56, 168, 8, 8 } }, // (
+   { "STCFN041", {  64, 168, 8, 8 } }, // )
+   { "STCFN042", {  72, 168, 8, 8 } }, // *
+   { "STCFN043", {  80, 168, 8, 8 } }, // +
+   { "STCFN044", {  88, 168, 8, 8 } }, // ,
+   { "STCFN045", {  96, 168, 8, 8 } }, // -
+   { "STCFN046", { 104, 168, 8, 8 } }, // .
+   { "STCFN047", { 112, 168, 8, 8 } }, // slash
+   { "STCFN048", { 120, 168, 8, 8 } }, // 0
+   { "STCFN049", { 128, 168, 8, 8 } }, // 1
+   { "STCFN050", { 136, 168, 8, 8 } }, // 2
+   { "STCFN051", { 144, 168, 8, 8 } }, // 3
+   { "STCFN052", { 152, 168, 8, 8 } }, // 4
+   { "STCFN053", { 160, 168, 8, 8 } }, // 5
+   { "STCFN054", { 168, 168, 8, 8 } }, // 6
+   { "STCFN055", { 176, 168, 8, 8 } }, // 7
+   { "STCFN056", { 184, 168, 8, 8 } }, // 8
+   { "STCFN057", { 192, 168, 8, 8 } }, // 9
+   { "STCFN058", { 200, 168, 8, 8 } }, // :
+   { "STCFN059", { 208, 168, 8, 8 } }, // ;
+   { "STCFN060", { 216, 168, 8, 8 } }, // <
+   { "STCFN061", { 224, 168, 8, 8 } }, // =
+   { "STCFN062", { 232, 168, 8, 8 } }, // >
+   { "STCFN063", { 240, 168, 8, 8 } }, // ?
+   { "STCFN064", { 248, 168, 8, 8 } }, // @
+   { "STCFN065", {   0, 176, 8, 8 } }, // A
+   { "STCFN066", {   8, 176, 8, 8 } }, // B
+   { "STCFN067", {  16, 176, 8, 8 } }, // C
+   { "STCFN068", {  24, 176, 8, 8 } }, // D
+   { "STCFN069", {  32, 176, 8, 8 } }, // E
+   { "STCFN070", {  40, 176, 8, 8 } }, // F
+   { "STCFN071", {  48, 176, 8, 8 } }, // G
+   { "STCFN072", {  56, 176, 8, 8 } }, // H
+   { "STCFN073", {  64, 176, 8, 8 } }, // I
+   { "STCFN074", {  72, 176, 8, 8 } }, // J
+   { "STCFN075", {  80, 176, 8, 8 } }, // K
+   { "STCFN076", {  88, 176, 8, 8 } }, // L
+   { "STCFN077", {  96, 176, 8, 8 } }, // M
+   { "STCFN078", { 104, 176, 8, 8 } }, // N
+   { "STCFN079", { 112, 176, 8, 8 } }, // O
+   { "STCFN080", { 120, 176, 8, 8 } }, // P
+   { "STCFN081", { 128, 176, 8, 8 } }, // Q
+   { "STCFN082", { 136, 176, 8, 8 } }, // R
+   { "STCFN083", { 144, 176, 8, 8 } }, // S
+   { "STCFN084", { 152, 176, 8, 8 } }, // T
+   { "STCFN085", { 160, 176, 8, 8 } }, // U
+   { "STCFN086", { 168, 176, 8, 8 } }, // V
+   { "STCFN087", { 176, 176, 8, 8 } }, // W
+   { "STCFN088", { 184, 176, 8, 8 } }, // X
+   { "STCFN089", { 192, 176, 8, 8 } }, // Y
+   { "STCFN090", { 200, 176, 8, 8 } }, // Z
+   { "STCFN091", { 208, 176, 8, 8 } }, // [
+   { "STCFN092", { 216, 176, 8, 8 } }, // backslash
+   { "STCFN093", { 224, 176, 8, 8 } }, // ]
+   { "STCFN094", { 232, 176, 8, 8 } }, // ^
+   { "STCFN095", { 240, 176, 8, 8 } }, // _
+   { "STCFN121", {  64, 176, 8, 8 } }, // | (duplicate of I character)
+};
+
+//
+// V_convertSTATUSToZip  
+//
+// Load and then decomposite the STATUS texture lump into its components
+// and add them to a ZIP archive.
+//
+static void V_convertSTATUSToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   VPSXImage statusImg(dir, "STATUS");
+
+   printf("* Converting STATUS texture...\n");
+
+   for(size_t i = 0; i < earrlen(StatusRegions); i++)
+   {
+      VPSXImage subImg(statusImg, StatusRegions[i].rect);
+
+      size_t  size = 0;
+      void   *data = subImg.toPatch(size);
+      qstring name;
+
+      name << "graphics/" << StatusRegions[i].lumpname;
+
+      Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
+                  ZIP_FILE_BINARY, true);
+   }
+}
+
+//
+// V_ConvertGraphicsToZip
+//
+// Write out screen graphic lumps to a ZIP archive.
+//
+void V_ConvertGraphicsToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   printf("V_ConvertGraphics: converting graphics:\n");
+
+   // create graphics directory
+   Zip_AddFile(zip, "graphics/", NULL, 0, ZIP_DIRECTORY, false);
+
+   // decomposite STATUS texture
+   V_convertSTATUSToZip(dir, zip);
 }
 
 //=============================================================================

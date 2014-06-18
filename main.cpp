@@ -236,6 +236,9 @@ static void D_TransformToZip()
    // flats
    V_ConvertFlatsToZip(psxIWAD, &gZipArchive);
 
+   // graphics
+   V_ConvertGraphicsToZip(psxIWAD, &gZipArchive);
+
    // palettes and color lumps
    V_ConvertPLAYPALToZip(&gZipArchive);
    V_ConvertCOLORMAPToZip(&gZipArchive);
