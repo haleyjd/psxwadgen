@@ -1,184 +1,184 @@
 [MAP01]
-levelname = LEVEL 1: HANGAR
+levelname = Level 1: Hangar
 
 [MAP02]
-levelname = LEVEL 2: PLANT
+levelname = Level 2: Plant
 
 [MAP03]
-levelname = LEVEL 3: TOXIN REFINERY
+levelname = Level 3: Toxin Refinery
 
 [MAP04]
-levelname = LEVEL 4: COMMAND CONTROL
+levelname = Level 4: Command Control
 
 [MAP05]
-levelname = LEVEL 5: PHOBOS LAB
+levelname = Level 5: Phobos Lab
 
 [MAP06]
-levelname = LEVEL 6: CENTRAL PROCESSING
+levelname = Level 6: Central Processing
 
 [MAP07]
-levelname = LEVEL 7: COMPUTER STATION
+levelname = Level 7: Computer Station
 
 [MAP08]
-levelname   = LEVEL 8: PHOBOS ANOMALY
+levelname   = Level 8: Phobos Anomaly
 levelaction = BaronOfHell Floor_LowerToLowest 671 8
 
 [MAP09]
-levelname = LEVEL 9: DEIMOS ANOMALY
+levelname = Level 9: Deimos Anomaly
 
 [MAP10]
-levelname = LEVEL 10: CONTAINMENT AREA
+levelname = Level 10: Containment Area
 
 [MAP11]
-levelname = LEVEL 11: REFINERY
+levelname = Level 11: Refinery
 
 [MAP12]
-levelname = LEVEL 12: DEIMOS LAB
+levelname = Level 12: Deimos Lab
 
 [MAP13]
-levelname = LEVEL 13: COMMAND CENTER
+levelname = Level 13: Command Center
 
 [MAP14]
-levelname = LEVEL 14: HALLS OF THE DAMNED
+levelname = Level 14: Halls of the Damned
 
 [MAP15]
-levelname = LEVEL 15: SPAWNING VATS
+levelname = Level 15: Spawning Vats
 
 [MAP16]
-levelname = LEVEL 16: HELL GATE
+levelname = Level 16: Hell Gate
 
 [MAP17]
-levelname = LEVEL 17: HELL KEEP
+levelname = Level 17: Hell Keep
 
 [MAP18]
-levelname = LEVEL 18: PANDEMONIUM
+levelname = Level 18: Pandemonium
 
 [MAP19]
-levelname = LEVEL 19: HOUSE OF PAIN
+levelname = Level 19: House of Pain
 
 [MAP20]
-levelname = LEVEL 20: UNHOLY CATHEDRAL
+levelname = Level 20: Unholy Cathedral
 
 [MAP21]
-levelname = LEVEL 21: MT. EREBUS
+levelname = Level 21: Mt. Erebus
 
 [MAP22]
-levelname = LEVEL 22: LIMBO
+levelname = Level 22: Limbo
 
 [MAP23]
-levelname   = LEVEL 23: TOWER OF BABEL
+levelname   = Level 23: Tower of Babel
 levelaction = Cyberdemon Door_Open 670 16
 
 [MAP24]
-levelname = LEVEL 24: HELL BENEATH
+levelname = Level 24: Hell Beneath
 
 [MAP25]
-levelname = LEVEL 25: PERFECT HATRED
+levelname = Level 25: Perfect Hatred
 
 [MAP26]
-levelname = LEVEL 26: SEVER THE WICKED
+levelname = Level 26: Sever the Wicked
 
 [MAP27]
-levelname = LEVEL 27: UNRULY EVIL
+levelname = Level 27: Unruly Evil
 
 [MAP28]
-levelname   = LEVEL 28: UNTO THE CRUEL
+levelname   = Level 28: Unto the Cruel
 levelaction = HellKnight Floor_LowerToLowest 669 8
 
 [MAP29]
-levelname = LEVEL 29: TWILIGHT DESCENDS
+levelname = Level 29: Twilight Descends
 
 [MAP30]
-levelname = LEVEL 30: THRESHOLD OF PAIN
+levelname = Level 30: Threshold of Pain
 
 [MAP31]
-levelname = LEVEL 31: ENTRYWAY
+levelname = Level 31: Entryway
 
 [MAP32]
-levelname = LEVEL 32: UNDERHALLS
+levelname = Level 32: Underhalls
 
 [MAP33]
-levelname = LEVEL 33: THE GANTLET
+levelname = Level 33: The Gantlet
 
 [MAP34]
-levelname = LEVEL 34: THE FOCUS
+levelname = Level 34: The Focus
 
 [MAP35]
-levelname = LEVEL 35: THE WASTE TUNNELS
+levelname = Level 35: The Waste Tunnels
 
 [MAP36]
-levelname = LEVEL 36: THE CRUSHER
+levelname = Level 36: The Crusher
 
 [MAP37]
-levelname   = LEVEL 37: DEAD SIMPLE
+levelname   = Level 37: Dead Simple
 levelaction = Mancubus    Floor_LowerToLowest 666 8
 levelaction = Arachnotron Floor_RaiseByValue  667 8 16
 
 [MAP38]
-levelname = LEVEL 38: TRICKS AND TRAPS
+levelname = Level 38: Tricks and Traps
 
 [MAP39]
-levelname = LEVEL 39: THE PIT
+levelname = Level 39: The Pit
 
 [MAP40]
-levelname = LEVEL 40: REFUELING BASE
+levelname = Level 40: Refueling Base
 
 [MAP41]
-levelname = LEVEL 41: O OF DESTRUCTION!
+levelname = Level 41: O of Destruction!
 
 [MAP42]
-levelname = LEVEL 42: THE FACTORY
+levelname = Level 42: The Factory
 
 [MAP43]
-levelname = LEVEL 43: THE INMOST DENS
+levelname = Level 43: The Inmost Dens
 
 [MAP44]
-levelname = LEVEL 44: SUBURBS
+levelname = Level 44: Suburbs
 
 [MAP45]
-levelname = LEVEL 45: TENEMENTS
+levelname = Level 45: Tenements
 
 [MAP46]
-levelname = LEVEL 46: THE COURTYARD
+levelname = Level 46: The Courtyard
 
 [MAP47]
-levelname = LEVEL 47: THE CITADEL
+levelname = Level 47: The Citadel
 
 [MAP48]
-levelname = LEVEL 48: NIRVANA
+levelname = Level 48: Nirvana
 
 [MAP49]
-levelname = LEVEL 49: THE CATACOMBS
+levelname = Level 49: The Catacombs
 
 [MAP50]
-levelname = LEVEL 50: BARRELS OF FUN
+levelname = Level 50: Barrels of Fun
 
 [MAP51]
-levelname = LEVEL 51: BLOODFALLS
+levelname = Level 51: Bloodfalls
 
 [MAP52]
-levelname = LEVEL 52: THE ABANDONED MINES
+levelname = Level 52: The Abandoned Mines
 
 [MAP53]
-levelname = LEVEL 53: MONSTER CONDO
+levelname = Level 53: Monster Condo
 
 [MAP54]
-levelname   = LEVEL 54: REDEMPTION DENIED
+levelname   = Level 54: Redemption Denied
 levelaction = BaronOfHell Floor_LowerToLowest 671 8
 levelaction = Spiderdemon Floor_LowerToLowest 668 8
 
 [MAP55]
-levelname = LEVEL 55: FORTRESS OF MYSTERY
+levelname = Level 55: Fortress of Mystery
 
 [MAP56]
-levelname = LEVEL 56: THE MILITARY BASE
+levelname = Level 56: The Military Base
 
 [MAP57]
-levelname   = LEVEL 57: THE MARSHES
+levelname   = Level 57: The Marshes
 levelaction = Cyberdemon Door_Open 670 64
 
 [MAP58]
-levelname = LEVEL 58: THE MANSION
+levelname = Level 58: The Mansion
 
 [MAP59]
-levelname = LEVEL 59: CLUB DOOM
+levelname = Level 59: Club DOOM
