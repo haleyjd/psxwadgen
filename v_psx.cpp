@@ -147,15 +147,16 @@ VPSXImage::VPSXImage(WadDirectory &dir, const char *lumpname)
 // Constructor for sub-image; pulls a rectangular region from the parent
 // image and makes it into its own surface.
 //
-VPSXImage::VPSXImage(const VPSXImage &parent, const rect_t &subrect)
+VPSXImage::VPSXImage(const VPSXImage &parent, const rect_t &subrect, 
+                     int16_t topoffs, int16_t leftoffs)
 {
    // test for subregion validity
    if(subrect.x < 0 || subrect.x + subrect.width  > parent.width ||
       subrect.y < 0 || subrect.y + subrect.height > parent.height)
       I_Error("VPSXImage: invalid subregion for child image\n");
    
-   top    = 0;
-   left   = 0;
+   top    = topoffs;
+   left   = leftoffs;
    width  = subrect.width;
    height = subrect.height;
 
@@ -544,75 +545,176 @@ struct statusregion_t
 {
    const char *lumpname;   // destination lump
    VPSXImage::rect_t rect; // rectangle on the STATUS texture
+   int16_t left;           // left offset
+   int16_t top;            // top offset
 };
+
+#define FACEL(x) ((28 - (x)) / 2)
+#define FACET(y) ((32 - (y)) / 2)
 
 static statusregion_t StatusRegions[] =
 {
+   // Doomguy status bar faces
+   { "STFST01",  {   0,  40, 19, 32 }, FACEL(19), FACET(32) }, // o_o
+   { "STFST00",  { 234, 136, 19, 32 }, FACEL(19), FACET(32) }, // >_>
+   { "STFST02",  {  20,  40, 19, 32 }, FACEL(19), FACET(32) }, // <_<
+   { "STFTL00",  {  40,  40, 21, 32 }, FACEL(21), FACET(32) }, // <.<
+   { "STFTR00",  {  62,  40, 21, 32 }, FACEL(21), FACET(32) }, // >.>
+   { "STFOUCH0", {  84,  40, 19, 32 }, FACEL(19), FACET(32) }, // O.O
+   { "STFEVL0",  { 104,  40, 19, 32 }, FACEL(19), FACET(32) }, // >:)
+   { "STFKILL0", { 124,  40, 19, 32 }, FACEL(19), FACET(32) }, // >:(
+   { "STFST11",  { 144,  40, 19, 32 }, FACEL(19), FACET(32) }, // o_o
+   { "STFST10",  { 164,  40, 19, 32 }, FACEL(19), FACET(32) }, // >_>
+   { "STFST12",  { 184,  40, 19, 32 }, FACEL(19), FACET(32) }, // <_<
+   { "STFTL10",  { 204,  40, 21, 32 }, FACEL(21), FACET(32) }, // <.<
+   { "STFTR10",  { 226,  40, 21, 32 }, FACEL(21), FACET(32) }, // >.>
+   { "STFOUCH1", {   0,  72, 19, 32 }, FACEL(19), FACET(32) }, // O.O
+   { "STFEVL1",  {  20,  72, 19, 32 }, FACEL(19), FACET(32) }, // >:)
+   { "STFKILL1", {  40,  72, 19, 32 }, FACEL(19), FACET(32) }, // >:(
+   { "STFST21",  {  60,  72, 19, 32 }, FACEL(19), FACET(32) }, // o_o
+   { "STFST20",  {  80,  72, 19, 32 }, FACEL(19), FACET(32) }, // >_>
+   { "STFST22",  { 100,  72, 19, 32 }, FACEL(19), FACET(32) }, // <_<
+   { "STFTL20",  { 120,  72, 22, 32 }, FACEL(22), FACET(32) }, // <.<
+   { "STFTR20",  { 142,  72, 23, 32 }, FACEL(23), FACET(32) }, // >.>
+   { "STFOUCH2", { 166,  72, 19, 32 }, FACEL(19), FACET(32) }, // O.O
+   { "STFEVL2",  { 186,  72, 19, 32 }, FACEL(19), FACET(32) }, // >:)
+   { "STFKILL2", { 206,  72, 19, 32 }, FACEL(19), FACET(32) }, // >:(
+   { "STFST31",  { 226,  72, 19, 32 }, FACEL(19), FACET(32) }, // o_o
+   { "STFST30",  {   0, 104, 19, 32 }, FACEL(19), FACET(32) }, // >_>
+   { "STFST32",  {  20, 104, 19, 32 }, FACEL(19), FACET(32) }, // <_<
+   { "STFTL30",  {  40, 104, 23, 32 }, FACEL(23), FACET(32) }, // <.<
+   { "STFTR30",  {  64, 104, 23, 32 }, FACEL(23), FACET(32) }, // >.>
+   { "STFOUCH3", {  88, 104, 19, 32 }, FACEL(19), FACET(32) }, // O.O
+   { "STFEVL3",  { 108, 104, 19, 32 }, FACEL(19), FACET(32) }, // >:)
+   { "STFKILL3", { 128, 104, 19, 32 }, FACEL(19), FACET(32) }, // >:(
+   { "STFST41",  { 148, 104, 19, 32 }, FACEL(19), FACET(32) }, // o_o
+   { "STFST40",  { 168, 104, 19, 32 }, FACEL(19), FACET(32) }, // >_>
+   { "STFST42",  { 188, 104, 19, 32 }, FACEL(19), FACET(32) }, // <_<
+   { "STFTL40",  { 208, 104, 24, 32 }, FACEL(24), FACET(32) }, // <.<
+   { "STFTR40",  { 232, 104, 23, 32 }, FACEL(23), FACET(32) }, // >.>
+   { "STFOUCH4", {   0, 136, 19, 32 }, FACEL(19), FACET(32) }, // O.O
+   { "STFEVL4",  {  20, 136, 19, 32 }, FACEL(19), FACET(32) }, // >:)
+   { "STFKILL4", {  40, 136, 19, 32 }, FACEL(19), FACET(32) }, // >:(
+   { "STFGOD0",  {  60, 136, 19, 32 }, FACEL(19), FACET(32) }, // O___O
+   { "STFDEAD0", {  80, 136, 19, 32 }, FACEL(19), FACET(32) }, // -_-
+   { "STFGIBS0", { 100, 136, 19, 32 }, FACEL(19), FACET(32) }, // x_x
+   { "STFGIBS1", { 122, 137, 25, 30 }, FACEL(25), FACET(30) }, // . _ X
+   { "STFGIBS2", { 148, 137, 26, 30 }, FACEL(26), FACET(30) }, // .  / X
+   { "STFGIBS3", { 174, 137, 30, 30 }, FACEL(30), FACET(30) }, // .(  )X
+   { "STFGIBS4", { 204, 137, 28, 30 }, FACEL(28), FACET(30) }, // *SPLORTCH*
+
    // "small" HUD font characters
-   { "STCFN033", {   0, 168, 8, 8 } }, // !
-   { "STCFN034", {   8, 168, 8, 8 } }, // "
-   { "STCFN035", {  16, 168, 8, 8 } }, // #
-   { "STCFN036", {  24, 168, 8, 8 } }, // $
-   { "STCFN037", {  32, 168, 8, 8 } }, // %
-   { "STCFN038", {  40, 168, 8, 8 } }, // &
-   { "STCFN039", {  48, 168, 8, 8 } }, // '
-   { "STCFN040", {  56, 168, 8, 8 } }, // (
-   { "STCFN041", {  64, 168, 8, 8 } }, // )
-   { "STCFN042", {  72, 168, 8, 8 } }, // *
-   { "STCFN043", {  80, 168, 8, 8 } }, // +
-   { "STCFN044", {  88, 168, 8, 8 } }, // ,
-   { "STCFN045", {  96, 168, 8, 8 } }, // -
-   { "STCFN046", { 104, 168, 8, 8 } }, // .
-   { "STCFN047", { 112, 168, 8, 8 } }, // slash
-   { "STCFN048", { 120, 168, 8, 8 } }, // 0
-   { "STCFN049", { 128, 168, 8, 8 } }, // 1
-   { "STCFN050", { 136, 168, 8, 8 } }, // 2
-   { "STCFN051", { 144, 168, 8, 8 } }, // 3
-   { "STCFN052", { 152, 168, 8, 8 } }, // 4
-   { "STCFN053", { 160, 168, 8, 8 } }, // 5
-   { "STCFN054", { 168, 168, 8, 8 } }, // 6
-   { "STCFN055", { 176, 168, 8, 8 } }, // 7
-   { "STCFN056", { 184, 168, 8, 8 } }, // 8
-   { "STCFN057", { 192, 168, 8, 8 } }, // 9
-   { "STCFN058", { 200, 168, 8, 8 } }, // :
-   { "STCFN059", { 208, 168, 8, 8 } }, // ;
-   { "STCFN060", { 216, 168, 8, 8 } }, // <
-   { "STCFN061", { 224, 168, 8, 8 } }, // =
-   { "STCFN062", { 232, 168, 8, 8 } }, // >
-   { "STCFN063", { 240, 168, 8, 8 } }, // ?
-   { "STCFN064", { 248, 168, 8, 8 } }, // @
-   { "STCFN065", {   0, 176, 8, 8 } }, // A
-   { "STCFN066", {   8, 176, 8, 8 } }, // B
-   { "STCFN067", {  16, 176, 8, 8 } }, // C
-   { "STCFN068", {  24, 176, 8, 8 } }, // D
-   { "STCFN069", {  32, 176, 8, 8 } }, // E
-   { "STCFN070", {  40, 176, 8, 8 } }, // F
-   { "STCFN071", {  48, 176, 8, 8 } }, // G
-   { "STCFN072", {  56, 176, 8, 8 } }, // H
-   { "STCFN073", {  64, 176, 8, 8 } }, // I
-   { "STCFN074", {  72, 176, 8, 8 } }, // J
-   { "STCFN075", {  80, 176, 8, 8 } }, // K
-   { "STCFN076", {  88, 176, 8, 8 } }, // L
-   { "STCFN077", {  96, 176, 8, 8 } }, // M
-   { "STCFN078", { 104, 176, 8, 8 } }, // N
-   { "STCFN079", { 112, 176, 8, 8 } }, // O
-   { "STCFN080", { 120, 176, 8, 8 } }, // P
-   { "STCFN081", { 128, 176, 8, 8 } }, // Q
-   { "STCFN082", { 136, 176, 8, 8 } }, // R
-   { "STCFN083", { 144, 176, 8, 8 } }, // S
-   { "STCFN084", { 152, 176, 8, 8 } }, // T
-   { "STCFN085", { 160, 176, 8, 8 } }, // U
-   { "STCFN086", { 168, 176, 8, 8 } }, // V
-   { "STCFN087", { 176, 176, 8, 8 } }, // W
-   { "STCFN088", { 184, 176, 8, 8 } }, // X
-   { "STCFN089", { 192, 176, 8, 8 } }, // Y
-   { "STCFN090", { 200, 176, 8, 8 } }, // Z
-   { "STCFN091", { 208, 176, 8, 8 } }, // [
-   { "STCFN092", { 216, 176, 8, 8 } }, // backslash
-   { "STCFN093", { 224, 176, 8, 8 } }, // ]
-   { "STCFN094", { 232, 176, 8, 8 } }, // ^
-   { "STCFN095", { 240, 176, 8, 8 } }, // _
-   { "STCFN121", {  64, 176, 8, 8 } }, // | (duplicate of I character)
+   { "STCFN033", {   0, 168,  8,  8 } }, // !
+   { "STCFN034", {   8, 168,  8,  8 } }, // "
+   { "STCFN035", {  16, 168,  8,  8 } }, // #
+   { "STCFN036", {  24, 168,  8,  8 } }, // $
+   { "STCFN037", {  32, 168,  8,  8 } }, // %
+   { "STCFN038", {  40, 168,  8,  8 } }, // &
+   { "STCFN039", {  48, 168,  8,  8 } }, // '
+   { "STCFN040", {  56, 168,  8,  8 } }, // (
+   { "STCFN041", {  64, 168,  8,  8 } }, // )
+   { "STCFN042", {  72, 168,  8,  8 } }, // *
+   { "STCFN043", {  80, 168,  8,  8 } }, // +
+   { "STCFN044", {  88, 168,  8,  8 } }, // ,
+   { "STCFN045", {  96, 168,  8,  8 } }, // -
+   { "STCFN046", { 104, 168,  8,  8 } }, // .
+   { "STCFN047", { 112, 168,  8,  8 } }, // slash
+   { "STCFN048", { 120, 168,  8,  8 } }, // 0
+   { "STCFN049", { 128, 168,  8,  8 } }, // 1
+   { "STCFN050", { 136, 168,  8,  8 } }, // 2
+   { "STCFN051", { 144, 168,  8,  8 } }, // 3
+   { "STCFN052", { 152, 168,  8,  8 } }, // 4
+   { "STCFN053", { 160, 168,  8,  8 } }, // 5
+   { "STCFN054", { 168, 168,  8,  8 } }, // 6
+   { "STCFN055", { 176, 168,  8,  8 } }, // 7
+   { "STCFN056", { 184, 168,  8,  8 } }, // 8
+   { "STCFN057", { 192, 168,  8,  8 } }, // 9
+   { "STCFN058", { 200, 168,  8,  8 } }, // :
+   { "STCFN059", { 208, 168,  8,  8 } }, // ;
+   { "STCFN060", { 216, 168,  8,  8 } }, // <
+   { "STCFN061", { 224, 168,  8,  8 } }, // =
+   { "STCFN062", { 232, 168,  8,  8 } }, // >
+   { "STCFN063", { 240, 168,  8,  8 } }, // ?
+   { "STCFN064", { 248, 168,  8,  8 } }, // @
+   { "STCFN065", {   0, 176,  8,  8 } }, // A
+   { "STCFN066", {   8, 176,  8,  8 } }, // B
+   { "STCFN067", {  16, 176,  8,  8 } }, // C
+   { "STCFN068", {  24, 176,  8,  8 } }, // D
+   { "STCFN069", {  32, 176,  8,  8 } }, // E
+   { "STCFN070", {  40, 176,  8,  8 } }, // F
+   { "STCFN071", {  48, 176,  8,  8 } }, // G
+   { "STCFN072", {  56, 176,  8,  8 } }, // H
+   { "STCFN073", {  64, 176,  8,  8 } }, // I
+   { "STCFN074", {  72, 176,  8,  8 } }, // J
+   { "STCFN075", {  80, 176,  8,  8 } }, // K
+   { "STCFN076", {  88, 176,  8,  8 } }, // L
+   { "STCFN077", {  96, 176,  8,  8 } }, // M
+   { "STCFN078", { 104, 176,  8,  8 } }, // N
+   { "STCFN079", { 112, 176,  8,  8 } }, // O
+   { "STCFN080", { 120, 176,  8,  8 } }, // P
+   { "STCFN081", { 128, 176,  8,  8 } }, // Q
+   { "STCFN082", { 136, 176,  8,  8 } }, // R
+   { "STCFN083", { 144, 176,  8,  8 } }, // S
+   { "STCFN084", { 152, 176,  8,  8 } }, // T
+   { "STCFN085", { 160, 176,  8,  8 } }, // U
+   { "STCFN086", { 168, 176,  8,  8 } }, // V
+   { "STCFN087", { 176, 176,  8,  8 } }, // W
+   { "STCFN088", { 184, 176,  8,  8 } }, // X
+   { "STCFN089", { 192, 176,  8,  8 } }, // Y
+   { "STCFN090", { 200, 176,  8,  8 } }, // Z
+   { "STCFN091", { 208, 176,  8,  8 } }, // [
+   { "STCFN092", { 216, 176,  8,  8 } }, // backslash
+   { "STCFN093", { 224, 176,  8,  8 } }, // ]
+   { "STCFN094", { 232, 176,  8,  8 } }, // ^
+   { "STCFN095", { 240, 176,  8,  8 } }, // _
+   { "STCFN121", {  64, 176,  8,  8 } }, // | (duplicate of I character)
+
+   // Statbar key icons
+   { "STKEYS0",  { 125, 184, 11,  8 } }, // Blue Card
+   { "STKEYS1",  { 136, 184, 11,  8 } }, // Yellow Card
+   { "STKEYS2",  { 114, 184, 11,  8 } }, // Red Card
+   { "STKEYS3",  { 158, 184, 11,  8 } }, // Blue Skull
+   { "STKEYS4",  { 169, 184, 11,  8 } }, // Yellow Skull
+   { "STKEYS5",  { 147, 184, 11,  8 } }, // Red Skull
+
+   // Statbar/intermission/big font numbers
+   { "WINUM0",   {   0, 195, 12, 16 } }, // 0
+   { "WINUM1",   {  12, 195, 12, 16 } }, // 1
+   { "WINUM2",   {  24, 195, 12, 16 } }, // 2
+   { "WINUM3",   {  36, 195, 12, 16 } }, // 3
+   { "WINUM4",   {  48, 195, 12, 16 } }, // 4
+   { "WINUM5",   {  60, 195, 12, 16 } }, // 5
+   { "WINUM6",   {  72, 195, 12, 16 } }, // 6
+   { "WINUM7",   {  84, 195, 12, 16 } }, // 7
+   { "WINUM8",   {  96, 195, 12, 16 } }, // 8
+   { "WINUM9",   { 108, 195, 12, 16 } }, // 9
+   { "WIPCNT",   { 120, 195, 12, 16 } }, // %
+   { "STTNUM0",  {   0, 195, 12, 16 } }, // 0
+   { "STTNUM1",  {  12, 195, 12, 16 } }, // 1
+   { "STTNUM2",  {  24, 195, 12, 16 } }, // 2
+   { "STTNUM3",  {  36, 195, 12, 16 } }, // 3
+   { "STTNUM4",  {  48, 195, 12, 16 } }, // 4
+   { "STTNUM5",  {  60, 195, 12, 16 } }, // 5
+   { "STTNUM6",  {  72, 195, 12, 16 } }, // 6
+   { "STTNUM7",  {  84, 195, 12, 16 } }, // 7
+   { "STTNUM8",  {  96, 195, 12, 16 } }, // 8
+   { "STTNUM9",  { 108, 195, 12, 16 } }, // 9
+   { "STTPRCNT", { 120, 195, 12, 16 } }, // %
+   { "FONTB16",  {   0, 195, 12, 16 } }, // 0
+   { "FONTB17",  {  12, 195, 12, 16 } }, // 1
+   { "FONTB18",  {  24, 195, 12, 16 } }, // 2
+   { "FONTB19",  {  36, 195, 12, 16 } }, // 3
+   { "FONTB20",  {  48, 195, 12, 16 } }, // 4
+   { "FONTB21",  {  60, 195, 12, 16 } }, // 5
+   { "FONTB22",  {  72, 195, 12, 16 } }, // 6
+   { "FONTB23",  {  84, 195, 12, 16 } }, // 7
+   { "FONTB24",  {  96, 195, 12, 16 } }, // 8
+   { "FONTB25",  { 108, 195, 12, 16 } }, // 9
+   { "FONTB05",  { 120, 195, 12, 16 } }, // %
+
+   // Skull cursor
+   { "M_SKULL1", { 132, 192, 16, 18 } },
+   { "M_SKULL2", { 148, 192, 16, 18 } },
 };
 
 //
@@ -629,13 +731,14 @@ static void V_convertSTATUSToZip(WadDirectory &dir, ziparchive_t *zip)
 
    for(size_t i = 0; i < earrlen(StatusRegions); i++)
    {
-      VPSXImage subImg(statusImg, StatusRegions[i].rect);
+      statusregion_t &reg = StatusRegions[i];
+      VPSXImage subImg(statusImg, reg.rect, reg.top, reg.left);
 
       size_t  size = 0;
       void   *data = subImg.toPatch(size);
       qstring name;
 
-      name << "graphics/" << StatusRegions[i].lumpname;
+      name << "graphics/" << reg.lumpname;
 
       Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
                   ZIP_FILE_BINARY, true);

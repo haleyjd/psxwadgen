@@ -69,7 +69,8 @@ protected:
 public:
    VPSXImage(WadDirectory &dir, int lumpnum);
    VPSXImage(WadDirectory &dir, const char *lumpname);
-   VPSXImage(const VPSXImage &parent, const rect_t &subrect);
+   VPSXImage(const VPSXImage &parent, const rect_t &subrect, 
+             int16_t topoffs = 0, int16_t leftoffs = 0);
    ~VPSXImage();
 
    int16_t getTop()    const { return top;    }
@@ -83,7 +84,7 @@ public:
    uint8_t *releasePixels()
    {
       uint8_t *ret = pixels;
-      pixels = NULL;
+      pixels = nullptr;
       return ret;
    }
 
