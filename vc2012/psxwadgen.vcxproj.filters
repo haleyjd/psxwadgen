@@ -248,5 +248,8 @@
     <ClInclude Include="..\d_scripts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -26,11 +26,31 @@
 
 #include "z_zone.h"
 
+#include "i_system.h"
+#include "m_misc.h"
+#include "m_qstr.h"
+#include "main.h"
 #include "zip_write.h"
 
-// Game version lump contents
-// TODO: change to "doom2 psx" as soon as supported
-static const char *gameversion = "doom2 commercial";
+//
+// D_addResourceScriptToZip
+//
+// Add a file from the resource directory as a script lump.
+//
+static void D_addResourceScriptToZip(ziparchive_t *zip, const char *filename)
+{
+   qstring srcpath;
+
+   srcpath = filename;
+   D_MakeResourceFilePath(srcpath);
+
+   char *text;
+   if(!(text = M_LoadStringFromFile(srcpath.constPtr())))
+      I_Error("D_addResourceScript: unable to load resource %s\n", srcpath.constPtr());
+
+   Zip_AddFile(zip, filename, reinterpret_cast<byte *>(text), 
+               static_cast<uint32_t>(strlen(text)), ZIP_FILE_TEXT, true);
+}
 
 //
 // D_ProcessScriptsForZip
@@ -39,9 +59,13 @@ static const char *gameversion = "doom2 commercial";
 //
 void D_ProcessScriptsForZip(ziparchive_t *zip)
 {
-   // Add gameversion.txt
-   Zip_AddFile(zip, "gameversion.txt", reinterpret_cast<const byte *>(gameversion),
-               static_cast<uint32_t>(strlen(gameversion)), ZIP_FILE_TEXT, false);
+   printf("D_ProcessScripts: adding script files.\n");
+
+   // EMAPINFO, for Eternity LevelInfo
+   D_addResourceScriptToZip(zip, "EMAPINFO.txt");
+
+   // gameversion.txt, for Eternity gamemode determination
+   D_addResourceScriptToZip(zip, "gameversion.txt");
 }
 
 // EOF
