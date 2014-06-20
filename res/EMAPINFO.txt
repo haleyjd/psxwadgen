@@ -1,0 +1,184 @@
+[MAP01]
+levelname = LEVEL 1: HANGAR
+
+[MAP02]
+levelname = LEVEL 2: PLANT
+
+[MAP03]
+levelname = LEVEL 3: TOXIN REFINERY
+
+[MAP04]
+levelname = LEVEL 4: COMMAND CONTROL
+
+[MAP05]
+levelname = LEVEL 5: PHOBOS LAB
+
+[MAP06]
+levelname = LEVEL 6: CENTRAL PROCESSING
+
+[MAP07]
+levelname = LEVEL 7: COMPUTER STATION
+
+[MAP08]
+levelname   = LEVEL 8: PHOBOS ANOMALY
+levelaction = BaronOfHell Floor_LowerToLowest 671 8
+
+[MAP09]
+levelname = LEVEL 9: DEIMOS ANOMALY
+
+[MAP10]
+levelname = LEVEL 10: CONTAINMENT AREA
+
+[MAP11]
+levelname = LEVEL 11: REFINERY
+
+[MAP12]
+levelname = LEVEL 12: DEIMOS LAB
+
+[MAP13]
+levelname = LEVEL 13: COMMAND CENTER
+
+[MAP14]
+levelname = LEVEL 14: HALLS OF THE DAMNED
+
+[MAP15]
+levelname = LEVEL 15: SPAWNING VATS
+
+[MAP16]
+levelname = LEVEL 16: HELL GATE
+
+[MAP17]
+levelname = LEVEL 17: HELL KEEP
+
+[MAP18]
+levelname = LEVEL 18: PANDEMONIUM
+
+[MAP19]
+levelname = LEVEL 19: HOUSE OF PAIN
+
+[MAP20]
+levelname = LEVEL 20: UNHOLY CATHEDRAL
+
+[MAP21]
+levelname = LEVEL 21: MT. EREBUS
+
+[MAP22]
+levelname = LEVEL 22: LIMBO
+
+[MAP23]
+levelname   = LEVEL 23: TOWER OF BABEL
+levelaction = Cyberdemon Door_Open 670 16
+
+[MAP24]
+levelname = LEVEL 24: HELL BENEATH
+
+[MAP25]
+levelname = LEVEL 25: PERFECT HATRED
+
+[MAP26]
+levelname = LEVEL 26: SEVER THE WICKED
+
+[MAP27]
+levelname = LEVEL 27: UNRULY EVIL
+
+[MAP28]
+levelname   = LEVEL 28: UNTO THE CRUEL
+levelaction = HellKnight Floor_LowerToLowest 669 8
+
+[MAP29]
+levelname = LEVEL 29: TWILIGHT DESCENDS
+
+[MAP30]
+levelname = LEVEL 30: THRESHOLD OF PAIN
+
+[MAP31]
+levelname = LEVEL 31: ENTRYWAY
+
+[MAP32]
+levelname = LEVEL 32: UNDERHALLS
+
+[MAP33]
+levelname = LEVEL 33: THE GANTLET
+
+[MAP34]
+levelname = LEVEL 34: THE FOCUS
+
+[MAP35]
+levelname = LEVEL 35: THE WASTE TUNNELS
+
+[MAP36]
+levelname = LEVEL 36: THE CRUSHER
+
+[MAP37]
+levelname   = LEVEL 37: DEAD SIMPLE
+levelaction = Mancubus    Floor_LowerToLowest 666 8
+levelaction = Arachnotron Floor_RaiseByValue  667 8 16
+
+[MAP38]
+levelname = LEVEL 38: TRICKS AND TRAPS
+
+[MAP39]
+levelname = LEVEL 39: THE PIT
+
+[MAP40]
+levelname = LEVEL 40: REFUELING BASE
+
+[MAP41]
+levelname = LEVEL 41: O OF DESTRUCTION!
+
+[MAP42]
+levelname = LEVEL 42: THE FACTORY
+
+[MAP43]
+levelname = LEVEL 43: THE INMOST DENS
+
+[MAP44]
+levelname = LEVEL 44: SUBURBS
+
+[MAP45]
+levelname = LEVEL 45: TENEMENTS
+
+[MAP46]
+levelname = LEVEL 46: THE COURTYARD
+
+[MAP47]
+levelname = LEVEL 47: THE CITADEL
+
+[MAP48]
+levelname = LEVEL 48: NIRVANA
+
+[MAP49]
+levelname = LEVEL 49: THE CATACOMBS
+
+[MAP50]
+levelname = LEVEL 50: BARRELS OF FUN
+
+[MAP51]
+levelname = LEVEL 51: BLOODFALLS
+
+[MAP52]
+levelname = LEVEL 52: THE ABANDONED MINES
+
+[MAP53]
+levelname = LEVEL 53: MONSTER CONDO
+
+[MAP54]
+levelname   = LEVEL 54: REDEMPTION DENIED
+levelaction = BaronOfHell Floor_LowerToLowest 671 8
+levelaction = Spiderdemon Floor_LowerToLowest 668 8
+
+[MAP55]
+levelname = LEVEL 55: FORTRESS OF MYSTERY
+
+[MAP56]
+levelname = LEVEL 56: THE MILITARY BASE
+
+[MAP57]
+levelname   = LEVEL 57: THE MARSHES
+levelaction = Cyberdemon Door_Open 670 64
+
+[MAP58]
+levelname = LEVEL 58: THE MANSION
+
+[MAP59]
+levelname = LEVEL 59: CLUB DOOM

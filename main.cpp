@@ -41,6 +41,7 @@
 // Default output file names for supported target formats
 #define DEF_OUTPUTNAME_WAD "psxdoom.wad"
 #define DEF_OUTPUTNAME_ZIP "psxdoom.pke"
+#define DEF_RESOURCEDIR    "./res"
 
 // Globals
 
@@ -54,6 +55,7 @@ ziparchive_t gZipArchive; // zip file (ie. pke archive)
 
 static qstring baseinputdir; // root input directory; ex: J:\PSXDOOM
 static qstring outputname;   // name of output file
+static qstring resourcedir;  // directory with resources to inject as lumps
 
 //
 // D_ExtractMovie
@@ -87,6 +89,34 @@ static void D_ExtractMovie()
    exit(0);
 }
 
+//
+// D_setResourceDir
+//
+// Finds the directory to use for external resources that will be merged into
+// the output archive.
+//
+static void D_setResourceDir()
+{
+   int p;
+
+   if((p = M_CheckParm("-res")) && p < myargc - 1)
+      resourcedir = myargv[p + 1];
+   else
+      resourcedir = DEF_RESOURCEDIR;
+}
+
+//
+// D_MakeResourceFilePath
+//
+// Given a file name, appends the resource path to the beginning.
+//
+void D_MakeResourceFilePath(qstring &filename)
+{
+   qstring tmp = resourcedir;
+   tmp.pathConcatenate(filename.constPtr());
+   filename = tmp;
+}
+
 static const char *usagestr =
 "\n"
 "psxwadgen options:\n"
@@ -98,7 +128,10 @@ static const char *usagestr =
 "-movie <imgfile> [-output <filename>] [-start <secnum>] [-length <seclen>]\n"
 "  Extracts the MOVIE.STR file from a raw CD image. Default output file name\n"
 "  is movie.str; default sector start position is 822 and length is 1377,\n"
-"  suitable for use with a North American release image.\n";
+"  suitable for use with a North American release image.\n"
+"\n"
+"-res <directory>\n"
+" Sets the external resource directory.\n";
 
 //
 // D_PrintUsage
@@ -146,6 +179,9 @@ static void D_CheckForParameters()
    // allow command-line override
    if((p = M_CheckParm("-output")) && p < myargc - 1)
       outputname = myargv[p+1];
+
+   // set resource directory
+   D_setResourceDir();
 }
 
 //
@@ -154,7 +190,7 @@ static void D_CheckForParameters()
 static void D_PrintStartupBanner()
 {
    puts("psxwadgen\n"
-        "Copyright 2013 James Haley et al.\n"
+        "Copyright 2014 James Haley et al.\n"
         "This program is free software distributed under the terms of the GNU General\n"
         "Public License. See the file \"COPYING\" for full details.\n");
 }
