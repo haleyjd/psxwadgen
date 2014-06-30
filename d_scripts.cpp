@@ -53,6 +53,31 @@ static void D_addResourceScriptToZip(ziparchive_t *zip, const char *filename)
 }
 
 //
+// D_addBinaryFileToZip
+//
+// Add a binary file from the /res folder into the zip.
+//
+static void D_addBinaryFileToZip(ziparchive_t *zip, const char *filename, 
+                                 const char *lumpname)
+{
+   qstring srcpath;
+
+   srcpath = filename;
+   D_MakeResourceFilePath(srcpath);
+
+   Zip_AddFile(zip, lumpname, srcpath.constPtr(), false);
+}
+
+//
+// D_addSwitchesAndAnimToZip
+//
+// Add the SWITCHES and ANIMATED lumps.
+//
+static void D_addSwitchesAndAnimToZip(ziparchive_t *zip)
+{
+}
+
+//
 // D_ProcessScriptsForZip
 //
 // Add script lumps to the zip archive.
@@ -61,11 +86,18 @@ void D_ProcessScriptsForZip(ziparchive_t *zip)
 {
    printf("D_ProcessScripts: adding script files.\n");
 
+   // EDFROOT
+   D_addResourceScriptToZip(zip, "EDFROOT.edf");
+
    // EMAPINFO, for Eternity LevelInfo
    D_addResourceScriptToZip(zip, "EMAPINFO.txt");
 
    // gameversion.txt, for Eternity gamemode determination
    D_addResourceScriptToZip(zip, "gameversion.txt");
+
+   // add ANIMATED and SWITCHES lumps
+   D_addBinaryFileToZip(zip, "ANIMATED.LMP", "ANIMATED.lmp");
+   D_addBinaryFileToZip(zip, "SWITCHES.LMP", "SWITCHES.lmp");
 }
 
 // EOF
