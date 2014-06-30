@@ -27,6 +27,7 @@
 #ifndef V_PSX_H__
 #define V_PSX_H__
 
+#include "doomtype.h"
 #include "z_zone.h"
 
 class qstring;
@@ -36,6 +37,11 @@ struct ziparchive_t;
 struct rgba_t
 {
    uint8_t r, g, b, a;
+};
+
+struct hsl_t
+{
+   double h, s, l;
 };
 
 //
@@ -89,6 +95,8 @@ public:
    }
 
    void *toPatch(size_t &size) const;
+
+   void scaleForFourThree();
 };
 
 // Known PSX PLAYPAL palette numbers
@@ -116,6 +124,10 @@ enum psxpalette_e
    PAL_WMSCRED1,   // Used for WMSCRED1 lump
    PAL_NUMPLAYPALS
 };
+
+int V_FindNearestColour(rgba_t colours[256], rgba_t colour);
+void V_ColoursFromPLAYPAL(size_t palnum, rgba_t outpal[256]);
+void V_BuildTranMap(rgba_t colours[256], byte *map, int pct);
 
 void V_LoadPLAYPAL(WadDirectory &dir);
 void V_GenerateCOLORMAP();

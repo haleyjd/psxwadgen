@@ -31,6 +31,7 @@
 #include "z_zone.h"
 
 #include "m_collection.h"
+#include "m_compare.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_qstr.h"
@@ -105,7 +106,7 @@ void VPSXImage::readImage(const void *data)
 //
 // VPSXImage::adjustOffsets
 //
-// Fixes offsets for weapon sprites.
+// Fixes offsets and scaling for weapon sprites.
 //
 void VPSXImage::adjustOffsets(const char *name)
 {
@@ -113,8 +114,10 @@ void VPSXImage::adjustOffsets(const char *name)
    {
       if(!strncasecmp(name, weaponSprites[i], strlen(weaponSprites[i])))
       {
+         left = left * 5 / 4;
          left += WEAPON_ORIGIN_X;
          top  += WEAPON_ORIGIN_Y;
+         scaleForFourThree();
       }
    }
 }
@@ -386,6 +389,171 @@ void *VPSXImage::toPatch(size_t &size) const
    return output;
 }
 
+static bool   palettebuilt;
+static rgba_t tranpalette[256];
+
+// tranmap with 50% translucency
+static byte *tranmap_50;
+
+// tranmap with 25% / 75% translucency
+static byte *tranmap_25_75;
+
+static byte V_blendTwoPx25(byte col1, byte col2, byte mask1, byte mask2)
+{
+   byte mcol1 = mask1 ? col1 : 0;
+   byte mcol2 = mask2 ? col2 : 0;
+
+   if(mcol1 && mcol2)
+      return tranmap_25_75[(mcol2 << 8) + mcol1];
+   else if(mcol2)
+      return mcol2;
+   else
+      return mcol1;
+}
+
+static byte V_blendTwoPx75(byte col1, byte col2, byte mask1, byte mask2)
+{
+   byte mcol1 = mask1 ? col1 : 0;
+   byte mcol2 = mask2 ? col2 : 0;
+
+   if(mcol1 && mcol2)
+      return tranmap_25_75[(mcol1 << 8) + mcol2];
+   else if(mcol1)
+      return mcol1;
+   else
+      return mcol2;
+}
+
+static byte V_blendTwoPx50(byte col1, byte col2, byte mask1, byte mask2)
+{
+   byte mcol1 = mask1 ? col1 : 0;
+   byte mcol2 = mask2 ? col2 : 0;
+
+   if(mcol1 && mcol2)
+      return tranmap_50[(mcol2 << 8) + mcol1];
+   else if(mcol2)
+      return mcol2;
+   else
+      return mcol1;
+}
+
+//
+// VPSXImage::scaleForFourThree
+//
+// Upscales the width of a screen patch to account for the 256 -> 320 scaling
+// that happened during video signal rasterization on television sets.
+//
+void VPSXImage::scaleForFourThree()
+{
+   int scaledWidth = (int)(ceil((width * 5.0) / 4.0));
+
+   if(!palettebuilt)
+   {
+      V_ColoursFromPLAYPAL(0, tranpalette);
+      palettebuilt = true;
+   }
+
+   // build tranmaps if not built already
+   if(!tranmap_50)
+   {
+      tranmap_50 = ecalloc(byte *, 256, 256);
+      V_BuildTranMap(tranpalette, tranmap_50, 50);
+   }
+   if(!tranmap_25_75)
+   {
+      tranmap_25_75 = ecalloc(byte *, 256, 256);
+      V_BuildTranMap(tranpalette, tranmap_25_75, 25);
+   }
+
+   // allocate upscaled buffer
+   byte *newPixels = ecalloc(byte *, scaledWidth, height);
+   byte *newMask   = ecalloc(byte *, scaledWidth, height);
+
+   // TEST
+   memset(newPixels, 168, scaledWidth*height);
+
+   for(int y = 0; y < height; y++)
+   {
+      int sx = 0;
+      int dx = 0;
+
+      // every 4 source pixels must turn into 5 destination pixels
+      for(; sx <= width - 4; sx += 4, dx += 5)
+      {
+         byte *psrc = pixels    + y * width       + sx;
+         byte *pdst = newPixels + y * scaledWidth + dx;
+         byte *msrc = mask      + y * width       + sx;
+         byte *mdst = newMask   + y * scaledWidth + dx;
+
+         pdst[0] = psrc[0];                                 // 100% 0
+         pdst[1] = V_blendTwoPx25(psrc[0], psrc[1], msrc[0], msrc[1]); // 25%  0 + 75% 1
+         pdst[2] = V_blendTwoPx50(psrc[1], psrc[2], msrc[1], msrc[2]); // 50%  1 + 50% 2
+         pdst[3] = V_blendTwoPx75(psrc[2], psrc[3], msrc[2], msrc[3]); // 75%  2 + 25% 3
+         pdst[4] = psrc[3];                                 // 100% 3
+
+         mdst[0] = msrc[0];
+         mdst[1] = !!pdst[1];
+         mdst[2] = !!pdst[2];
+         mdst[3] = !!pdst[3];
+         mdst[4] = !!pdst[4];
+         mdst[4] = msrc[3];
+      }
+      if(sx < width) // width is not 0 % 4?
+      {
+         byte dstpx[] = { 0, 0, 0, 0, 0 };
+         byte dstmx[] = { 0, 0, 0, 0, 0 };
+         byte *psrc = pixels    + y * width       + sx;
+         byte *msrc = mask      + y * width       + sx;
+         byte *pdst = newPixels + y * scaledWidth + dx;
+         byte *mdst = newMask   + y * scaledWidth + dx;
+         
+         switch(width % 4)
+         {
+         case 1: // one pixel left
+            dstpx[0] = *psrc;
+            dstmx[0] = *msrc;
+            //memset(dstpx, *psrc, sizeof(dstpx));
+            //memset(dstmx, *msrc, sizeof(dstmx));
+            break;
+         case 2: // two pixels left
+            dstpx[0] = *psrc;
+            dstmx[0] = *msrc;
+            dstpx[1] = V_blendTwoPx25(psrc[0], psrc[1], msrc[0], msrc[1]);
+            dstmx[1] = !!dstpx[1];
+            dstpx[2] = psrc[1];
+            dstmx[2] = msrc[1];
+            break;
+         case 3: // three pixels left
+            dstpx[0] = *psrc;
+            dstmx[0] = *msrc;
+            dstpx[1] = V_blendTwoPx25(psrc[0], psrc[1], msrc[0], msrc[1]);
+            dstmx[1] = !!dstpx[1];
+            dstpx[2] = V_blendTwoPx50(psrc[1], psrc[2], msrc[1], msrc[2]);
+            dstmx[2] = !!dstpx[2];
+            dstpx[3] = psrc[2];
+            dstmx[3] = msrc[2];
+            break;
+         default: // shouldn't be reachable.
+            break;
+         }
+         size_t amt = scaledWidth - dx > 5 ? 5 : scaledWidth - dx;
+         if(amt)
+         {
+            memcpy(pdst, dstpx, amt);
+            memcpy(mdst, dstmx, amt);
+         }
+      }
+   }
+
+   // set image to the new pixel array and adjust width
+   efree(pixels);
+   efree(mask);
+
+   pixels = newPixels;
+   mask   = newMask;
+   width  = scaledWidth;
+}
+
 //=============================================================================
 //
 // Sprites
@@ -549,11 +717,14 @@ struct statusregion_t
    int16_t top;            // top offset
 };
 
-#define FACEL(x) ((28 - (x)) / 2)
-#define FACET(y) ((32 - (y)) / 2)
+#define FACEL(x) -((5 * (28 - (x)) / 4) / 2)
+#define FACET(y) -((32 - (y)) / 2)
 
 static statusregion_t StatusRegions[] =
 {
+   // Status Bar BG
+   { "STBAR",    {   0,   0, 256, 32 } }, // should really be 40 tall...
+
    // Doomguy status bar faces
    { "STFST01",  {   0,  40, 19, 32 }, FACEL(19), FACET(32) }, // o_o
    { "STFST00",  { 234, 136, 19, 32 }, FACEL(19), FACET(32) }, // >_>
@@ -648,7 +819,7 @@ static statusregion_t StatusRegions[] =
    { "STCFN074", {  72, 176,  8,  8 } }, // J
    { "STCFN075", {  80, 176,  8,  8 } }, // K
    { "STCFN076", {  88, 176,  8,  8 } }, // L
-   { "STCFN077", {  96, 176,  8,  8 } }, // M
+   { "STCFN077", {  96, 176,  9,  8 } }, // M
    { "STCFN078", { 104, 176,  8,  8 } }, // N
    { "STCFN079", { 112, 176,  8,  8 } }, // O
    { "STCFN080", { 120, 176,  8,  8 } }, // P
@@ -658,7 +829,7 @@ static statusregion_t StatusRegions[] =
    { "STCFN084", { 152, 176,  8,  8 } }, // T
    { "STCFN085", { 160, 176,  8,  8 } }, // U
    { "STCFN086", { 168, 176,  8,  8 } }, // V
-   { "STCFN087", { 176, 176,  8,  8 } }, // W
+   { "STCFN087", { 176, 176,  9,  8 } }, // W
    { "STCFN088", { 184, 176,  8,  8 } }, // X
    { "STCFN089", { 192, 176,  8,  8 } }, // Y
    { "STCFN090", { 200, 176,  8,  8 } }, // Z
@@ -678,6 +849,7 @@ static statusregion_t StatusRegions[] =
    { "STKEYS5",  { 147, 184, 11,  8 } }, // Red Skull
 
    // Statbar/intermission/big font numbers
+   { "FONTB63",  { 232, 190, 10, 16 } }, // _
    { "WINUM0",   {   0, 195, 12, 16 } }, // 0
    { "WINUM1",   {  12, 195, 12, 16 } }, // 1
    { "WINUM2",   {  24, 195, 12, 16 } }, // 2
@@ -689,6 +861,7 @@ static statusregion_t StatusRegions[] =
    { "WINUM8",   {  96, 195, 12, 16 } }, // 8
    { "WINUM9",   { 108, 195, 12, 16 } }, // 9
    { "WIPCNT",   { 120, 195, 12, 16 } }, // %
+   { "WIMINUS",  { 232, 199, 10, 16 } }, // -
    { "STTNUM0",  {   0, 195, 12, 16 } }, // 0
    { "STTNUM1",  {  12, 195, 12, 16 } }, // 1
    { "STTNUM2",  {  24, 195, 12, 16 } }, // 2
@@ -700,6 +873,7 @@ static statusregion_t StatusRegions[] =
    { "STTNUM8",  {  96, 195, 12, 16 } }, // 8
    { "STTNUM9",  { 108, 195, 12, 16 } }, // 9
    { "STTPRCNT", { 120, 195, 12, 16 } }, // %
+   { "STTMINUS", { 232, 199, 10, 16 } }, // -
    { "FONTB16",  {   0, 195, 12, 16 } }, // 0
    { "FONTB17",  {  12, 195, 12, 16 } }, // 1
    { "FONTB18",  {  24, 195, 12, 16 } }, // 2
@@ -711,10 +885,68 @@ static statusregion_t StatusRegions[] =
    { "FONTB24",  {  96, 195, 12, 16 } }, // 8
    { "FONTB25",  { 108, 195, 12, 16 } }, // 9
    { "FONTB05",  { 120, 195, 12, 16 } }, // %
+   { "FONTB13",  { 232, 199, 10, 16 } }, // -
+
 
    // Skull cursor
    { "M_SKULL1", { 132, 192, 16, 18 } },
    { "M_SKULL2", { 148, 192, 16, 18 } },
+
+   // FONTB mainline chars
+   { "FONTB01",  {   0, 211,  8, 16 } }, // !
+   { "FONTB14",  {   8, 211,  8, 16 } }, // .
+   { "FONTB33",  {  16, 211, 16, 16 } }, // A
+   { "FONTB34",  {  32, 211, 14, 16 } }, // B
+   { "FONTB35",  {  46, 211, 14, 16 } }, // C
+   { "FONTB36",  {  60, 211, 14, 16 } }, // D
+   { "FONTB37",  {  74, 211, 14, 16 } }, // E
+   { "FONTB38",  {  88, 211, 14, 16 } }, // F
+   { "FONTB39",  { 102, 211, 14, 16 } }, // G
+   { "FONTB40",  { 116, 211, 14, 16 } }, // H
+   { "FONTB41",  { 130, 211,  7, 16 } }, // I
+   { "FONTB42",  { 137, 211, 11, 16 } }, // J
+   { "FONTB43",  { 148, 211, 14, 16 } }, // K
+   { "FONTB44",  { 162, 211, 14, 16 } }, // L
+   { "FONTB45",  { 176, 211, 16, 16 } }, // M
+   { "FONTB46",  { 192, 211, 16, 16 } }, // N
+   { "FONTB47",  { 208, 211, 14, 16 } }, // O
+   { "FONTB48",  { 222, 211, 14, 16 } }, // P
+   { "FONTB49",  { 236, 211, 14, 16 } }, // Q
+   { "FONTB50",  {   0, 227, 14, 16 } }, // R
+   { "FONTB51",  {  14, 227, 14, 16 } }, // S
+   { "FONTB52",  {  28, 227, 14, 16 } }, // T
+   { "FONTB53",  {  42, 227, 14, 16 } }, // U
+   { "FONTB54",  {  56, 227, 16, 16 } }, // V
+   { "FONTB55",  {  72, 227, 16, 16 } }, // W
+   { "FONTB56",  {  88, 227, 16, 16 } }, // X
+   { "FONTB57",  { 104, 227, 14, 16 } }, // Y
+   { "FONTB58",  { 118, 227, 14, 16 } }, // Z
+   { "FONTB65",  { 132, 230, 14, 13 }, 0, -3 }, // a
+   { "FONTB66",  { 146, 230, 12, 13 }, 0, -3 }, // b
+   { "FONTB67",  { 158, 230, 12, 13 }, 0, -3 }, // c
+   { "FONTB68",  { 170, 230, 12, 13 }, 0, -3 }, // d
+   { "FONTB69",  { 182, 230, 10, 13 }, 0, -3 }, // e
+   { "FONTB70",  { 192, 230, 11, 13 }, 0, -3 }, // f
+   { "FONTB71",  { 204, 230, 12, 13 }, 0, -3 }, // g
+   { "FONTB72",  { 216, 230, 12, 13 }, 0, -3 }, // h
+   { "FONTB73",  { 228, 230,  6, 13 }, 0, -3 }, // i
+   { "FONTB74",  { 234, 230, 10, 13 }, 0, -3 }, // j
+   { "FONTB75",  {   0, 243, 12, 13 }, 0, -3 }, // k
+   { "FONTB76",  {  12, 243, 10, 13 }, 0, -3 }, // l
+   { "FONTB77",  {  22, 243, 14, 13 }, 0, -3 }, // m
+   { "FONTB78",  {  36, 243, 14, 13 }, 0, -3 }, // n
+   { "FONTB79",  {  50, 243, 12, 13 }, 0, -3 }, // o
+   { "FONTB80",  {  62, 243, 12, 13 }, 0, -3 }, // p
+   { "FONTB81",  {  74, 243, 12, 13 }, 0, -3 }, // q
+   { "FONTB82",  {  86, 243, 12, 13 }, 0, -3 }, // r
+   { "FONTB83",  {  98, 243, 13, 13 }, 0, -3 }, // s
+   { "FONTB84",  { 112, 243, 12, 13 }, 0, -3 }, // t
+   { "FONTB85",  { 124, 243, 12, 13 }, 0, -3 }, // u
+   { "FONTB86",  { 136, 243, 14, 13 }, 0, -3 }, // v
+   { "FONTB87",  { 150, 243, 14, 13 }, 0, -3 }, // w
+   { "FONTB88",  { 164, 243, 14, 13 }, 0, -3 }, // x
+   { "FONTB89",  { 178, 243, 14, 13 }, 0, -3 }, // y
+   { "FONTB90",  { 192, 243, 14, 13 }, 0, -3 }  // z
 };
 
 //
@@ -733,6 +965,8 @@ static void V_convertSTATUSToZip(WadDirectory &dir, ziparchive_t *zip)
    {
       statusregion_t &reg = StatusRegions[i];
       VPSXImage subImg(statusImg, reg.rect, reg.top, reg.left);
+
+      subImg.scaleForFourThree();
 
       size_t  size = 0;
       void   *data = subImg.toPatch(size);
@@ -771,6 +1005,164 @@ static byte   *playpal;
 static size_t  numpals;
 
 //
+// V_RGBToHSL
+//
+// Convert RGB color to HSL color space. From SLADE.
+//
+static hsl_t V_RGBToHSL(const rgba_t &rgb)
+{
+   hsl_t ret;
+
+   double r, g, b;
+   r = (double)rgb.r / 255.0f;
+   g = (double)rgb.g / 255.0f;
+   b = (double)rgb.b / 255.0f;
+
+   double v_min = emin(r, emin(g, b));
+   double v_max = emax(r, emax(g, b));
+   double delta = v_max - v_min;
+
+   // determine V
+   ret.l = (v_max + v_min) * 0.5;
+
+   if(delta == 0)
+      ret.h = ret.s = 0; // gray (r == g == b)
+   else
+   {
+      // determine s
+      if(ret.l < 0.5)
+         ret.s = delta / (v_max + v_min);
+      else
+         ret.s = delta / (2.0 - v_max - v_min);
+
+      // determine h
+      if(r == v_max)
+         ret.h = (g - b) / delta;
+      else if(g == v_max)
+         ret.h = 2.0 + (b - r) / delta;
+      else if(b == v_max)
+         ret.h = 4.0 + (r - g) / delta;
+
+      ret.h /= 6.0;
+      if(ret.h < 0)
+         ret.h += 1.0;
+   }
+   return ret;
+}
+
+//
+// V_HSLToRGB
+//
+// Convert HSL color to RGB color space. From SLADE.
+//
+static rgba_t V_HSLToRGB(const hsl_t &hsl)
+{
+   edefstructvar(rgba_t, ret);
+   ret.a = 255;
+
+   // no saturation means gray
+   if(hsl.s == 0.0)
+   {
+      ret.r = ret.g = ret.b = (uint8_t)(255.0 * hsl.l);
+      return ret;
+   }
+
+   // Find the rough values at given H with mid L and max S.
+   double  hue    = (6.0 * hsl.h);
+   uint8_t sector = (uint8_t)hue;
+   double  factor = hue - sector;
+   double  dr, dg, db;
+   switch(sector)
+   {
+   case 0: // RGB 0xFF0000 to 0xFFFF00, increasingly green
+      dr = 1.0; dg = factor; db = 0.0; 
+      break;
+   case 1: // RGB 0xFFFF00 to 0x00FF00, decreasingly red
+      dr = 1.0 - factor; dg = 1.0; db = 0.0; 
+      break;
+   case 2: // RGB 0x00FF00 to 0x00FFFF, increasingly blue
+      dr = 0.0; dg = 1.0; db = factor; 
+      break;
+   case 3: // RGB 0x00FFFF to 0x0000FF, decreasingly green
+      dr = 0.0; dg = 1.0 - factor; db = 1.0; 
+      break;
+   case 4: // RGB 0x0000FF to 0xFF00FF, increasingly red
+      dr = factor; dg = 0.0; db = 1.0; 
+      break;
+   case 5: // RGB 0xFF00FF to 0xFF0000, decreasingly blue
+      dr = 1.0; dg = 0.0; db = 1.0 - factor; 
+      break;
+   }
+
+   // Now apply desaturation
+   double ds = (1.0 - hsl.s) * 0.5;
+   dr = ds + (dr * hsl.s);
+   dg = ds + (dg * hsl.s);
+   db = ds + (db * hsl.s);
+
+   // Finally apply luminosity
+   double dl = hsl.l * 2.0;
+   double sr, sg, sb, sl;
+   if(dl > 1.0)
+   {
+      // Make brighter
+      sl = dl - 1.0;
+      sr = sl * (1.0 - dr); dr += sr;
+      sg = sl * (1.0 - dg); dg += sg;
+      sb = sl * (1.0 - db); db += sb;
+   }
+   else if (dl < 1.0)
+   {
+      // Make darker
+      sl = 1.0 - dl;
+      sr = sl * dr; dr -= sr;
+      sg = sl * dg; dg -= sg;
+      sb = sl * db; db -= sb;
+   }
+
+   // Clamping (shouldn't actually be needed)
+   if(dr > 1.0) dr = 1.0; if (dr < 0.0) dr = 0.0;
+   if(dg > 1.0) dg = 1.0; if (dg < 0.0) dg = 0.0;
+   if(db > 1.0) db = 1.0; if (db < 0.0) db = 0.0;
+
+   // Now convert from 0f--1f to 0i--255i, rounding up
+   ret.r = (uint8_t)(dr * 255.0 + 0.499999999);
+   ret.g = (uint8_t)(dg * 255.0 + 0.499999999);
+   ret.b = (uint8_t)(db * 255.0 + 0.499999999);
+
+   return ret;
+}
+
+// LOG TEST
+/*
+static byte V_logColor(byte incolor)
+{
+   float fcolor   = (float)incolor;
+   float colScale = fcolor * 10.0f / 255.0f;
+
+   return (byte)(incolor * log10(colScale));
+}
+*/
+
+static void V_logColor(byte &r, byte &g, byte &b)
+{
+   rgba_t rgb;
+   rgb.r = r;
+   rgb.g = g;
+   rgb.b = b;
+   rgb.a = 255;
+
+   hsl_t hsl = V_RGBToHSL(rgb);
+   //hsl.l *= log10((hsl.l + 1.0) * 5);
+   hsl.l *= log10(hsl.l * 9.0 + 1.0);
+
+   rgb = V_HSLToRGB(hsl);
+   r = rgb.r;
+   g = rgb.g;
+   b = rgb.b;
+}
+
+//
 // V_LoadPLAYPAL
 //
 // Load the PLAYPAL lump and convert it from PSX RGBA 1555 format to 24-bit.
@@ -802,6 +1194,8 @@ void V_LoadPLAYPAL(WadDirectory &dir)
          palptr[3*colnum+0] = (byte)(((val & 0x001F) << 3)/* + 7*/);
          palptr[3*colnum+1] = (byte)(((val & 0x03E0) >> 2)/* + 7*/);
          palptr[3*colnum+2] = (byte)(((val & 0x7C00) >> 7)/* + 7*/);
+
+         //V_logColor(palptr[3*colnum+0], palptr[3*colnum+1], palptr[3*colnum+2]);
       }
       palptr += 768;
    }
@@ -950,6 +1344,64 @@ int V_FindNearestColour(rgba_t colours[256], rgba_t colour)
 
 //=============================================================================
 //
+// Tranmap computation (for internal use)
+//
+
+// number of fixed point digits in filter percent
+#define TSC 12 
+
+void V_BuildTranMap(rgba_t colours[256], byte *map, int pct)
+{
+   int pal[3][256], tot[256], pal_w1[3][256];
+   int w1 = ((unsigned int) pct << TSC) / 100;
+   int w2 = (1l << TSC) - w1;
+   int i;
+
+   // First, convert playpal into long int type, and transpose array,
+   // for fast inner-loop calculations. Precompute tot array.
+   i = 255;
+   do
+   {
+      int t, d;
+      pal_w1[0][i] = (pal[0][i] = t = colours[i].r) * w1;
+      d = t*t;
+      pal_w1[1][i] = (pal[1][i] = t = colours[i].g) * w1;
+      d += t*t;
+      pal_w1[2][i] = (pal[2][i] = t = colours[i].b) * w1;
+      d += t*t;
+      tot[i] = d << (TSC - 1);
+   }
+   while(--i >= 0);
+
+   // Next, compute all entries using minimum arithmetic.
+   byte *tp = map;
+   for(i = 0; i < 256; i++)
+   {
+      int r1 = pal[0][i] * w2;
+      int g1 = pal[1][i] * w2;
+      int b1 = pal[2][i] * w2;
+
+      for(int j = 0; j < 256; j++, tp++)
+      {
+         int color = 255;
+         int err;
+         int r = pal_w1[0][j] + r1;
+         int g = pal_w1[1][j] + g1;
+         int b = pal_w1[2][j] + b1;
+         int best = INT_MAX;
+         do
+         {
+            if((err = tot[color] - pal[0][color]*r
+               - pal[1][color]*g - pal[2][color]*b) < best)
+               best = err, *tp = color;
+         }
+         while(--color >= 1); // don't match against color 0
+      }
+   }
+}
+
+//=============================================================================
+//
 // COLORMAP Generation
 //
 // PSX Doom didn't even have a COLORMAP lump at all because it uses hardware
@@ -958,7 +1410,6 @@ int V_FindNearestColour(rgba_t colours[256], rgba_t colour)
 // one here.
 //
 // NB: Code is largely from SLADE.
-// DONE: Modified light fade to more closely match PSX (4/9 factor on level)
 //
 
 static uint8_t colormap[34*256];
@@ -968,8 +1419,10 @@ static float col_greyscale_b = 0.114f;
 
 #define GREENMAP 255
 #define GRAYMAP  32
-//#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(4.0f*(float)level/9.0f))+16.0f)/32.0f)
-#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(5.0f*(float)level/9.0f))+16.0f)/32.0f)
+
+#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f - (float)level) + 16.0f)/32.0f)
+//#define DIMINISH(color, level) color = (uint8_t)(((float)color * (32.0f-(5.0f*(float)level/9.0f))+16.0f)/32.0f)
+
 
 //
 // V_GenerateCOLORMAP
@@ -997,7 +1450,6 @@ void V_GenerateCOLORMAP()
 
          if(l < 32)
          {
-            // Generate light maps
             DIMINISH(rgb.r, l);
             DIMINISH(rgb.g, l);
             DIMINISH(rgb.b, l);
