@@ -1,0 +1,39 @@
+stdinclude("root.edf");
+setdialect("Alfheim");
+
+// Fonts
+
+mn_font ee_smallfont
+
+font ee_bigfont
+{
+	id          2
+	start       '!'
+	end         'z'
+	linesize    18
+	tallestchar 16
+	spacesize   8
+	colorable   true
+	uppercase   false
+	widthdelta  1
+	
+	patchnumoffset 32
+	filter { start '!'; end 'z'; mask "FONTB%.2d" }
+	
+	defaultcolor red
+	
+	// TODO:
+	colortables
+	{
+		brick  @identity
+		tan    @identity
+		gray   @identity
+		green  @identity
+		brown  @identity
+		gold   @identity
+		red    @identity
+		blue   @identity
+		orange @identity
+		yellow @identity
+	}
+}

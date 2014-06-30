@@ -1,0 +1,82 @@
+#
+# This file is input for SWANTBLS.EXE, it specifies the switchnames
+# and animated textures and flats usable for PSX DOOM. The output of
+# SWANTBLS is two lumps, SWITCHES.LMP and ANIMATED.LMP that should
+# be inserted in the PWAD as lumps.
+#
+#switches usable with each IWAD, 1=SW, 2=registered DOOM, 3=DOOM2
+[SWITCHES]
+#epi    texture1        texture2
+3       SW1BMET         SW2BMET
+3       SW1BRICK        SW2BRICK
+3       SW1BRNZ         SW2BRNZ
+3       SW1BROWN        SW2BROWN
+3       SW1MARB         SW2MARB
+3       SW1MET          SW2MET
+3       SW1METAL        SW2METAL
+3       SW1NEW02        SW2NEW02
+3       SW1NEW03        SW2NEW03
+3       SW1NEW04        SW2NEW04
+3       SW1NEW05        SW2NEW05
+3       SW1NEW06        SW2NEW06
+3       SW1NEW10        SW2NEW10
+3       SW1NEW11        SW2NEW11
+3       SW1NEW13        SW2NEW13
+3       SW1NEW14        SW2NEW14
+3       SW1NEW20        SW2NEW20
+3       SW1NEW25        SW2NEW25
+3       SW1NEW26        SW2NEW26
+3       SW1NEW28        SW2NEW28
+3       SW1NEW29        SW2NEW29
+3       SW1NEW30        SW2NEW30
+3       SW1NEW31        SW2NEW31
+3       SW1NEW32        SW2NEW32
+3       SW1NEW33        SW2NEW33
+3       SW1NEW34        SW2NEW34
+3       SW1NEW35        SW2NEW35
+3       SW1NEW36        SW2NEW36
+3       SW1NEW39        SW2NEW39
+3       SW1NEW40        SW2NEW40
+3       SW1NEW41        SW2NEW41
+3       SW1NEW42        SW2NEW42
+3       SW1NEW45        SW2NEW45
+3       SW1NEW46        SW2NEW46
+3       SW1NEW47        SW2NEW47
+3       SW1NEW51        SW2NEW51
+3       SW1NEW57        SW2NEW57
+3       SW1NEW60        SW2NEW60
+3       SW1NEW63        SW2NEW63
+3       SW1NEW65        SW2NEW65
+3       SW1NEW66        SW2NEW66
+3       SW1NEW68        SW2NEW68
+3       SW1NEW69        SW2NEW69
+3       SW1NEW70        SW2NEW70
+3       SW1RED          SW2RED
+3       SW1RUST         SW2RUST
+3       SW1SKULL        SW2SKULL
+3       SW1STAR         SW2STAR
+3       SW1STEEL        SW2STEEL
+
+#animated flats, spd is number of frames between changes
+[FLATS]
+#spd    last            first
+8       BLOOD3          BLOOD1
+8       BSLIME04        BSLIME01
+8       CSLIME04        CSLIME01
+8       ENERG04         ENERG01
+8       GLOW04          GLOW01
+8       LAVA04          LAVA01
+8       SLIME03         SLIME01
+8       WATER04         WATER01
+
+#animated textures, spd is number of frames between changes
+[TEXTURES]
+#spd    last            first
+8       BFALL4          BFALL1
+8       ENERGY04        ENERGY01
+8       FIRE02          FIRE01
+8       FLAME03         FLAME01
+8       LAVWAL03        LAVWAL01
+8       SFALL4          SFALL1
+8       SLIM04          SLIM01
+8       TVSNOW03        TVSNOW01
