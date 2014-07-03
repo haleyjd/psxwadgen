@@ -169,16 +169,21 @@ levelaction = Spiderdemon Floor_LowerToLowest 668 8
 
 [MAP55]
 levelname = Level 55: Fortress of Mystery
+nextlevel = MAP16
 
 [MAP56]
 levelname = Level 56: The Military Base
+nextlevel = MAP04
 
 [MAP57]
 levelname   = Level 57: The Marshes
 levelaction = Cyberdemon Door_Open 670 64
+nextlevel   = MAP30
 
 [MAP58]
 levelname = Level 58: The Mansion
+nextlevel = MAP45
 
 [MAP59]
 levelname = Level 59: Club DOOM
+nextlevel = MAP45
