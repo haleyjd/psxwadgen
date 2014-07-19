@@ -713,6 +713,7 @@ struct statusregion_t
    VPSXImage::rect_t rect; // rectangle on the STATUS texture
    int16_t left;           // left offset
    int16_t top;            // top offset
+   bool    noscale;        // if true, don't scale for 4:3
 };
 
 #define FACEL(x) -((5 * (28 - (x)) / 4) / 2)
@@ -773,36 +774,36 @@ static statusregion_t StatusRegions[] =
    { "STFGIBS4", { 204, 137, 28, 30 }, FACEL(28), FACET(30) }, // *SPLORTCH*
 
    // "small" HUD font characters
-   { "STCFN033", {   2, 168,  4,  8 } }, // !
-   { "STCFN034", {   8, 168,  7,  8 } }, // "
-   { "STCFN035", {  16, 168,  7,  8 } }, // #
-   { "STCFN036", {  24, 168,  7,  8 } }, // $
-   { "STCFN037", {  32, 168,  7,  8 } }, // %
+   { "STCFN033", {   2, 168,  8,  8 } }, // !
+   { "STCFN034", {   8, 168,  8,  8 } }, // "
+   { "STCFN035", {  16, 168,  8,  8 } }, // #
+   { "STCFN036", {  24, 168,  8,  8 } }, // $
+   { "STCFN037", {  32, 168,  8,  8 } }, // %
    { "STCFN038", {  40, 168,  8,  8 } }, // &
-   { "STCFN039", {  48, 168,  4,  8 } }, // '
-   { "STCFN040", {  56, 168,  7,  8 } }, // (
-   { "STCFN041", {  64, 168,  7,  8 } }, // )
-   { "STCFN042", {  72, 168,  7,  8 } }, // *
-   { "STCFN043", {  81, 168,  5,  8 } }, // +
-   { "STCFN044", {  89, 168,  4,  8 } }, // ,
-   { "STCFN045", {  97, 168,  6,  8 } }, // -
-   { "STCFN046", { 104, 168,  4,  8 } }, // .
-   { "STCFN047", { 112, 168,  7,  8 } }, // slash
+   { "STCFN039", {  48, 168,  8,  8 } }, // '
+   { "STCFN040", {  56, 168,  8,  8 } }, // (
+   { "STCFN041", {  64, 168,  8,  8 } }, // )
+   { "STCFN042", {  72, 168,  8,  8 } }, // *
+   { "STCFN043", {  80, 168,  8,  8 } }, // +
+   { "STCFN044", {  88, 168,  8,  8 } }, // ,
+   { "STCFN045", {  96, 168,  8,  8 } }, // -
+   { "STCFN046", { 104, 168,  8,  8 } }, // .
+   { "STCFN047", { 112, 168,  8,  8 } }, // slash
    { "STCFN048", { 120, 168,  8,  8 } }, // 0
-   { "STCFN049", { 129, 168,  5,  8 } }, // 1
+   { "STCFN049", { 128, 168,  8,  8 } }, // 1
    { "STCFN050", { 136, 168,  8,  8 } }, // 2
    { "STCFN051", { 144, 168,  8,  8 } }, // 3
-   { "STCFN052", { 152, 168,  7,  8 } }, // 4
-   { "STCFN053", { 160, 168,  7,  8 } }, // 5
+   { "STCFN052", { 152, 168,  8,  8 } }, // 4
+   { "STCFN053", { 160, 168,  8,  8 } }, // 5
    { "STCFN054", { 168, 168,  8,  8 } }, // 6
    { "STCFN055", { 176, 168,  8,  8 } }, // 7
    { "STCFN056", { 184, 168,  8,  8 } }, // 8
    { "STCFN057", { 192, 168,  8,  8 } }, // 9
-   { "STCFN058", { 200, 168,  4,  8 } }, // :
-   { "STCFN059", { 208, 168,  4,  8 } }, // ;
-   { "STCFN060", { 216, 168,  5,  8 } }, // <
-   { "STCFN061", { 225, 168,  5,  8 } }, // =
-   { "STCFN062", { 232, 168,  5,  8 } }, // >
+   { "STCFN058", { 200, 168,  8,  8 } }, // :
+   { "STCFN059", { 208, 168,  8,  8 } }, // ;
+   { "STCFN060", { 216, 168,  8,  8 } }, // <
+   { "STCFN061", { 224, 168,  8,  8 } }, // =
+   { "STCFN062", { 232, 168,  8,  8 } }, // >
    { "STCFN063", { 240, 168,  8,  8 } }, // ?
    { "STCFN064", { 248, 168,  8,  8 } }, // @
    { "STCFN065", {   0, 176,  8,  8 } }, // A
@@ -813,7 +814,7 @@ static statusregion_t StatusRegions[] =
    { "STCFN070", {  40, 176,  8,  8 } }, // F
    { "STCFN071", {  48, 176,  8,  8 } }, // G
    { "STCFN072", {  56, 176,  8,  8 } }, // H
-   { "STCFN073", {  66, 176,  4,  8 } }, // I
+   { "STCFN073", {  64, 176,  8,  8 } }, // I
    { "STCFN074", {  72, 176,  8,  8 } }, // J
    { "STCFN075", {  80, 176,  8,  8 } }, // K
    { "STCFN076", {  88, 176,  8,  8 } }, // L
@@ -823,20 +824,86 @@ static statusregion_t StatusRegions[] =
    { "STCFN080", { 120, 176,  8,  8 } }, // P
    { "STCFN081", { 128, 176,  8,  8 } }, // Q
    { "STCFN082", { 136, 176,  8,  8 } }, // R
-   { "STCFN083", { 144, 176,  7,  8 } }, // S
+   { "STCFN083", { 144, 176,  8,  8 } }, // S
    { "STCFN084", { 152, 176,  8,  8 } }, // T
    { "STCFN085", { 160, 176,  8,  8 } }, // U
-   { "STCFN086", { 168, 176,  7,  8 } }, // V
+   { "STCFN086", { 168, 176,  8,  8 } }, // V
    { "STCFN087", { 176, 176,  9,  8 } }, // W
-   { "STCFN088", { 185, 176,  7,  8 } }, // X
+   { "STCFN088", { 184, 176,  8,  8 } }, // X
    { "STCFN089", { 192, 176,  8,  8 } }, // Y
-   { "STCFN090", { 200, 176,  7,  8 } }, // Z
-   { "STCFN091", { 208, 176,  5,  8 } }, // [
-   { "STCFN092", { 216, 176,  7,  8 } }, // backslash
-   { "STCFN093", { 224, 176,  5,  8 } }, // ]
-   { "STCFN094", { 232, 176,  7,  8 } }, // ^
+   { "STCFN090", { 200, 176,  8,  8 } }, // Z
+   { "STCFN091", { 208, 176,  8,  8 } }, // [
+   { "STCFN092", { 216, 176,  8,  8 } }, // backslash
+   { "STCFN093", { 224, 176,  8,  8 } }, // ]
+   { "STCFN094", { 232, 176,  8,  8 } }, // ^
    { "STCFN095", { 240, 176,  8,  8 } }, // _
-   { "STCFN121", {  66, 176,  4,  8 } }, // | (duplicate of I character)
+   { "STCFN121", {  64, 176,  8,  8 } }, // | (duplicate of I character)
+
+   // copy of HUD font characters for menu
+   { "MNUFN033", {   2, 168,  4,  8 }, 0, 0, true }, // !
+   { "MNUFN034", {   8, 168,  7,  8 }, 0, 0, true }, // "
+   { "MNUFN035", {  16, 168,  7,  8 }, 0, 0, true }, // #
+   { "MNUFN036", {  24, 168,  7,  8 }, 0, 0, true }, // $
+   { "MNUFN037", {  32, 168,  7,  8 }, 0, 0, true }, // %
+   { "MNUFN038", {  40, 168,  8,  8 }, 0, 0, true }, // &
+   { "MNUFN039", {  48, 168,  4,  8 }, 0, 0, true }, // '
+   { "MNUFN040", {  56, 168,  7,  8 }, 0, 0, true }, // (
+   { "MNUFN041", {  64, 168,  7,  8 }, 0, 0, true }, // )
+   { "MNUFN042", {  72, 168,  7,  8 }, 0, 0, true }, // *
+   { "MNUFN043", {  81, 168,  5,  8 }, 0, 0, true }, // +
+   { "MNUFN044", {  89, 168,  4,  8 }, 0, 0, true }, // ,
+   { "MNUFN045", {  97, 168,  6,  8 }, 0, 0, true }, // -
+   { "MNUFN046", { 104, 168,  4,  8 }, 0, 0, true }, // .
+   { "MNUFN047", { 112, 168,  7,  8 }, 0, 0, true }, // slash
+   { "MNUFN048", { 120, 168,  8,  8 }, 0, 0, true }, // 0
+   { "MNUFN049", { 129, 168,  5,  8 }, 0, 0, true }, // 1
+   { "MNUFN050", { 136, 168,  8,  8 }, 0, 0, true }, // 2
+   { "MNUFN051", { 144, 168,  8,  8 }, 0, 0, true }, // 3
+   { "MNUFN052", { 152, 168,  7,  8 }, 0, 0, true }, // 4
+   { "MNUFN053", { 160, 168,  7,  8 }, 0, 0, true }, // 5
+   { "MNUFN054", { 168, 168,  8,  8 }, 0, 0, true }, // 6
+   { "MNUFN055", { 176, 168,  8,  8 }, 0, 0, true }, // 7
+   { "MNUFN056", { 184, 168,  8,  8 }, 0, 0, true }, // 8
+   { "MNUFN057", { 192, 168,  8,  8 }, 0, 0, true }, // 9
+   { "MNUFN058", { 200, 168,  4,  8 }, 0, 0, true }, // :
+   { "MNUFN059", { 208, 168,  4,  8 }, 0, 0, true }, // ;
+   { "MNUFN060", { 216, 168,  5,  8 }, 0, 0, true }, // <
+   { "MNUFN061", { 225, 168,  5,  8 }, 0, 0, true }, // =
+   { "MNUFN062", { 232, 168,  5,  8 }, 0, 0, true }, // >
+   { "MNUFN063", { 240, 168,  8,  8 }, 0, 0, true }, // ?
+   { "MNUFN064", { 248, 168,  8,  8 }, 0, 0, true }, // @
+   { "MNUFN065", {   0, 176,  8,  8 }, 0, 0, true }, // A
+   { "MNUFN066", {   8, 176,  8,  8 }, 0, 0, true }, // B
+   { "MNUFN067", {  16, 176,  8,  8 }, 0, 0, true }, // C
+   { "MNUFN068", {  24, 176,  8,  8 }, 0, 0, true }, // D
+   { "MNUFN069", {  32, 176,  8,  8 }, 0, 0, true }, // E
+   { "MNUFN070", {  40, 176,  8,  8 }, 0, 0, true }, // F
+   { "MNUFN071", {  48, 176,  8,  8 }, 0, 0, true }, // G
+   { "MNUFN072", {  56, 176,  8,  8 }, 0, 0, true }, // H
+   { "MNUFN073", {  66, 176,  4,  8 }, 0, 0, true }, // I
+   { "MNUFN074", {  72, 176,  8,  8 }, 0, 0, true }, // J
+   { "MNUFN075", {  80, 176,  8,  8 }, 0, 0, true }, // K
+   { "MNUFN076", {  88, 176,  8,  8 }, 0, 0, true }, // L
+   { "MNUFN077", {  96, 176,  9,  8 }, 0, 0, true }, // M
+   { "MNUFN078", { 104, 176,  8,  8 }, 0, 0, true }, // N
+   { "MNUFN079", { 112, 176,  8,  8 }, 0, 0, true }, // O
+   { "MNUFN080", { 120, 176,  8,  8 }, 0, 0, true }, // P
+   { "MNUFN081", { 128, 176,  8,  8 }, 0, 0, true }, // Q
+   { "MNUFN082", { 136, 176,  8,  8 }, 0, 0, true }, // R
+   { "MNUFN083", { 144, 176,  7,  8 }, 0, 0, true }, // S
+   { "MNUFN084", { 152, 176,  8,  8 }, 0, 0, true }, // T
+   { "MNUFN085", { 160, 176,  8,  8 }, 0, 0, true }, // U
+   { "MNUFN086", { 168, 176,  7,  8 }, 0, 0, true }, // V
+   { "MNUFN087", { 176, 176,  9,  8 }, 0, 0, true }, // W
+   { "MNUFN088", { 185, 176,  7,  8 }, 0, 0, true }, // X
+   { "MNUFN089", { 192, 176,  8,  8 }, 0, 0, true }, // Y
+   { "MNUFN090", { 200, 176,  7,  8 }, 0, 0, true }, // Z
+   { "MNUFN091", { 208, 176,  5,  8 }, 0, 0, true }, // [
+   { "MNUFN092", { 216, 176,  7,  8 }, 0, 0, true }, // backslash
+   { "MNUFN093", { 224, 176,  5,  8 }, 0, 0, true }, // ]
+   { "MNUFN094", { 232, 176,  7,  8 }, 0, 0, true }, // ^
+   { "MNUFN095", { 240, 176,  8,  8 }, 0, 0, true }, // _
+   { "MNUFN121", {  66, 176,  4,  8 }, 0, 0, true }, // | (duplicate of I character)
 
    // Statbar key icons
    { "STKEYS0",  { 125, 184, 11,  8 } }, // Blue Card
@@ -964,7 +1031,8 @@ static void V_convertSTATUSToZip(WadDirectory &dir, ziparchive_t *zip)
       statusregion_t &reg = StatusRegions[i];
       VPSXImage subImg(statusImg, reg.rect, reg.top, reg.left);
 
-      subImg.scaleForFourThree();
+      if(!reg.noscale)
+         subImg.scaleForFourThree();
 
       size_t  size = 0;
       void   *data = subImg.toPatch(size);
@@ -973,6 +1041,43 @@ static void V_convertSTATUSToZip(WadDirectory &dir, ziparchive_t *zip)
       name << "graphics/" << reg.lumpname;
 
       Zip_AddFile(zip, name.constPtr(), (byte *)data, (uint32_t)size, 
+                  ZIP_FILE_BINARY, true);
+   }
+}
+
+struct screen_t
+{
+   const char *psxLumpName;
+   const char *destLumpName;
+};
+
+static screen_t screens[] =
+{
+   { "BACK",  "INTERPIC" }, // intermission background
+   { "DEMON", "BOSSBACK" }, // boss background
+};
+
+//
+// V_convertScreensToZip
+//
+// Put in the miscellaneous screen lumps.
+//
+static void V_convertScreensToZip(WadDirectory &dir, ziparchive_t *zip)
+{
+   printf("* Converting screens...\n");
+
+   for(size_t i = 0; i < earrlen(screens); i++)
+   {
+      VPSXImage screen(dir, screens[i].psxLumpName);
+      screen.scaleForFourThree();
+
+      uint32_t  size = screen.getWidth() * screen.getHeight(); 
+      uint8_t  *pic  = screen.releasePixels();
+      qstring   name;
+
+      name << "graphics/" << screens[i].destLumpName;
+
+      Zip_AddFile(zip, name.constPtr(), pic, size, 
                   ZIP_FILE_BINARY, true);
    }
 }
@@ -991,6 +1096,9 @@ void V_ConvertGraphicsToZip(WadDirectory &dir, ziparchive_t *zip)
 
    // decomposite STATUS texture
    V_convertSTATUSToZip(dir, zip);
+
+   // convert screens
+   V_convertScreensToZip(dir, zip);
 }
 
 //=============================================================================
