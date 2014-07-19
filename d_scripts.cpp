@@ -69,15 +69,6 @@ static void D_addBinaryFileToZip(ziparchive_t *zip, const char *filename,
 }
 
 //
-// D_addSwitchesAndAnimToZip
-//
-// Add the SWITCHES and ANIMATED lumps.
-//
-static void D_addSwitchesAndAnimToZip(ziparchive_t *zip)
-{
-}
-
-//
 // D_ProcessScriptsForZip
 //
 // Add script lumps to the zip archive.
@@ -91,6 +82,10 @@ void D_ProcessScriptsForZip(ziparchive_t *zip)
 
    // EMAPINFO, for Eternity LevelInfo
    D_addResourceScriptToZip(zip, "EMAPINFO.txt");
+
+   // Level end texts
+   D_addResourceScriptToZip(zip, "UDOOMEND.txt");
+   D_addResourceScriptToZip(zip, "DOOM2END.txt");
 
    // gameversion.txt, for Eternity gamemode determination
    D_addResourceScriptToZip(zip, "gameversion.txt");

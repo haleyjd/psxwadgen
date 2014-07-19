@@ -89,7 +89,9 @@ levelaction = HellKnight Floor_LowerToLowest 669 8
 levelname = Level 29: Twilight Descends
 
 [MAP30]
-levelname = Level 30: Threshold of Pain
+levelname      = Level 30: Threshold of Pain
+intertext      = UDOOMEND
+inter-backdrop = INTERPIC
 
 [MAP31]
 levelname = Level 31: Entryway
@@ -112,7 +114,8 @@ levelname = Level 36: The Crusher
 [MAP37]
 levelname   = Level 37: Dead Simple
 levelaction = Mancubus    Floor_LowerToLowest 666 8
-levelaction = Arachnotron Floor_RaiseByValue  667 8 16
+levelaction = Arachnotron Floor_RaiseByValue  667 8 24
+skyname     = SKY04 // needed to fix some buggy sectors
 
 [MAP38]
 levelname = Level 38: Tricks and Traps
@@ -163,9 +166,12 @@ levelname = Level 52: The Abandoned Mines
 levelname = Level 53: Monster Condo
 
 [MAP54]
-levelname   = Level 54: Redemption Denied
-levelaction = BaronOfHell Floor_LowerToLowest 671 8
-levelaction = Spiderdemon Floor_LowerToLowest 668 8
+levelname      = Level 54: Redemption Denied
+levelaction    = BaronOfHell Floor_LowerToLowest 671 8
+levelaction    = Spiderdemon Floor_LowerToLowest 668 8
+intertext      = DOOM2END
+inter-backdrop = BOSSBACK
+endofgame      = true
 
 [MAP55]
 levelname = Level 55: Fortress of Mystery
