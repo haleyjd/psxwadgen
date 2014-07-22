@@ -158,15 +158,6 @@ static void D_openLevelPWADs(const qstring &inpath)
 #endif
 
 #ifndef NO_UNIT_TESTS
-struct maplinedef_s
-{
-  int16_t v1;
-  int16_t v2;
-  int16_t flags;
-  int16_t special;
-  int16_t tag;
-  int16_t sidenum[2];  // sidenum[1] will be -1 if one sided
-};
 
 //
 // D_dumpLineFlags
@@ -193,6 +184,31 @@ static void D_dumpLineFlags(const char *filename, void *lines, size_t size)
 
    fclose(f);
 }
+
+//
+// D_dumpSectorFlags
+//
+// Function to output the unknown final field(s) of the mapsector_t structure.
+//
+static void D_dumpSectorFlags(const char *filename, void *sectors, size_t size)
+{
+   auto   secptr     = static_cast<byte *>(sectors);
+   size_t numsectors = size / 28;
+
+   FILE *f = fopen("secflags.txt", "a");
+   if(!f)
+      return;
+
+   for(size_t i = 0; i < numsectors; i++)
+   {
+      secptr += 26; // skip to last 2 bytes
+      uint16_t flags = GetBinaryUWord(&secptr);
+      fprintf(f, "%s: sector %5d: %08x\n", filename, (int)i, flags);
+   }
+
+   fclose(f);
+}
+
 #endif
 
 #define PUTLONG(b, l) \
@@ -254,8 +270,14 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
          ZAutoBuffer buf;
          dir.cacheLumpAuto(lump->selfindex, buf);
 #if 0
+         // line flags debug output
          if(!strcasecmp(lump->name, "LINEDEFS")) // TEST
             D_dumpLineFlags(filename.constPtr(), buf.get(), buf.getSize());
+#endif
+#if 1
+         // sector flags debug output
+         if(!strcasecmp(lump->name, "SECTORS")) // TEST
+            D_dumpSectorFlags(filename.constPtr(), buf.get(), buf.getSize());
 #endif
          memcpy(inptr, buf.get(), lump->size);
          inptr += lump->size;
