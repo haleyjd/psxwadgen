@@ -31,6 +31,7 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_qstr.h"
+#include "main.h"
 #include "s_sfxgen.h"
 #include "v_psx.h"
 #include "w_formats.h"
@@ -47,6 +48,9 @@
 
 // Output format
 WResourceFmt gOutputFormat = W_FORMAT_ZIP;
+
+// sound effects format
+int s_sfxfmt = SFX_FMT_WAV;
 
 // Output targets
 ziparchive_t gZipArchive; // zip file (ie. pke archive)
@@ -125,13 +129,18 @@ static const char *usagestr =
 "  Generates a psxdoom.wad or psxdoom.pke output file, given the path to the\n"
 "  PSXDOOM directory on a disc or mounted disc image of PlayStation DOOM.\n"
 "\n"
+"-sfxfmt <format>\n"
+"  Set the sound effect output format:\n"
+"  * dmx = DMX format 0x03\n"
+"  * wav = Microsoft WAVE (default)\n"
+"\n"
 "-movie <imgfile> [-output <filename>] [-start <secnum>] [-length <seclen>]\n"
 "  Extracts the MOVIE.STR file from a raw CD image. Default output file name\n"
 "  is movie.str; default sector start position is 822 and length is 1377,\n"
 "  suitable for use with a North American release image.\n"
 "\n"
 "-res <directory>\n"
-" Sets the external resource directory.\n";
+"  Sets the external resource directory.\n";
 
 //
 // D_PrintUsage
@@ -145,14 +154,14 @@ static void D_PrintUsage()
 }
 
 //
-// CheckForParameters
+// D_CheckForParameters
 //
 // Check for command line parameters
 //
 static void D_CheckForParameters()
 {
    int p;
-   static const char *helpParams[] = { "-help", "-?" };
+   static const char *helpParams[] = { "-help", "-?", nullptr };
 
    // check for help
    if(myargc < 2 || M_CheckMultiParm(helpParams, 0))
@@ -179,6 +188,15 @@ static void D_CheckForParameters()
    // allow command-line override
    if((p = M_CheckParm("-output")) && p < myargc - 1)
       outputname = myargv[p+1];
+
+   // sound effects format
+   if((p = M_CheckParm("-sfxfmt")) && p < myargc - 1)
+   {
+      if(!strcasecmp(myargv[p + 1], "dmx"))
+         s_sfxfmt = SFX_FMT_DMX;
+      else if(!strcasecmp(myargv[p + 1], "wav"))
+         s_sfxfmt = SFX_FMT_WAV;
+   }
 
    // set resource directory
    D_setResourceDir();

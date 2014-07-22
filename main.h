@@ -31,6 +31,14 @@ class qstring;
 
 void D_MakeResourceFilePath(qstring &filename);
 
+enum
+{
+   SFX_FMT_DMX,
+   SFX_FMT_WAV
+};
+
+extern int s_sfxfmt;
+
 #endif
 
 // EOF
