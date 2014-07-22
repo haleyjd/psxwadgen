@@ -42,6 +42,7 @@
 #include "m_misc.h"
 #include "m_qstr.h"
 #include "m_strcasestr.h"
+#include "main.h"
 #include "s_sounds.h"
 #include "v_loading.h"
 #include "zip_write.h"
@@ -104,25 +105,25 @@ struct sfx_t
 
 static sfx_t sfx[256];
 
-//
-// S_renderPCM
-//
-// Decompress PlayStation ADPCM to PCM.
-//
-static void S_renderPCM()
-{
-   // constants lifted from spxjin.  i don't pretend to understand
-   // all of the details of this particular DPCM encoding, but the
-   // basic concept isnt that hard...
-   const static int f[5][2] = 
-   { 
-      {    0,  0  },
-      {   60,  0  },
-      {  115, -52 },
-      {   98, -55 },
-      {  122, -60 }
-   };
+// constants lifted from spxjin.  i don't pretend to understand
+// all of the details of this particular DPCM encoding, but the
+// basic concept isnt that hard...
+const static int f[5][2] = 
+{ 
+   {    0,  0  },
+   {   60,  0  },
+   {  115, -52 },
+   {   98, -55 },
+   {  122, -60 }
+};
 
+//
+// S_renderPCMDMX
+//
+// Decompress PlayStation ADPCM to DMX PCM format 0x03.
+//
+static void S_renderPCMDMX()
+{
    s16 s_1, s_2;
 
    for(int i = 0; i < 256; i++)
@@ -208,6 +209,124 @@ static void S_renderPCM()
 
       memset(sfx[i].pcm + 8, fs, 16);
       memset(sfx[i].pcm + 24 + sfx[i].nsamp, ls, 16);
+   }
+}
+
+#define putshort(b, s) \
+   b[0] = (u8)((s >> 0) & 0xff); \
+   b[1] = (u8)((s >> 8) & 0xff); \
+   b += 2
+
+#define putlong(b, l) \
+   b[0] = (u8)((l >>  0) & 0xff); \
+   b[1] = (u8)((l >>  8) & 0xff); \
+   b[2] = (u8)((l >> 16) & 0xff); \
+   b[3] = (u8)((l >> 24) & 0xff); \
+   b += 4
+
+#define putid(b, str) \
+   memcpy(b, str, 4); \
+   b += 4
+
+//
+// S_putWAVEHeader
+//
+// Write a WAVE header at the start of the data.
+//
+static s16 *S_putWAVEHeader(u8 *buffer, unsigned int nsamp)
+{
+   u8 *rover = buffer;
+   int scratch;
+   putid(rover, "RIFF");      // RIFF header
+   scratch = nsamp * 2 + 36;
+   putlong(rover, scratch);   // length - 8
+   putid(rover, "WAVE");      // WAVE subformat
+   putid(rover, "fmt ");      // fmt chunk
+   putlong(rover, 16);        // chunk length
+   putshort(rover, 1);        // PCM format
+   putshort(rover, 1);        // mono
+   putlong(rover, 11025);     // sample rate
+   putlong(rover, 2*11025);   // bytes per second
+   putshort(rover, 2);        // blockalign
+   putshort(rover, 16);       // bits per sample
+   putid(rover, "data");      // data chunk
+   putlong(rover, 2*nsamp);   // chunk size
+
+   return (s16 *)rover; // in writing position for PCM samples.
+}
+
+//
+// S_renderPCMWAV
+//
+// Decompress PlayStation ADPCM to Microsoft WAVE-format PCM.
+//
+static void S_renderPCMWAV()
+{
+   s16 s_1, s_2;
+
+   for(int i = 0; i < 256; i++)
+   {
+      if(!sfx[i].data || !sfx[i].len)
+         continue;
+
+      // each block of 16 bytes gives 28 samples of output data.
+      sfx[i].nsamp = sfx[i].len / 16 * 28;
+
+      // we'll make single channel s16 pcm data
+      sfx[i].total = 44 + sizeof(s16) * sfx[i].nsamp;
+      sfx[i].pcm   = ecalloc(u8 *, 1, sfx[i].total);
+
+      s16 *outpos = S_putWAVEHeader(sfx[i].pcm, sfx[i].nsamp);
+
+      // set predictor values
+      s_1 = 0;
+      s_2 = 0;
+
+      u8 *pos;
+
+      for(pos = sfx[i].data; pos < sfx[i].data + sfx[i].len; pos += 16)
+      {
+         // first byte of data: two nibbles, predict weight and shift factor
+         int predict_weight = pos[0] >> 4;
+         int shift_factor   = pos[0] & 15;
+
+         // second byte of data is flags, we use those elsewhere
+         // 4: set loop start point
+         // 1: stop (2 = halt, not 2 = loop)
+
+         // remaining bytes are dpcm values for 28 samples in nibbles
+
+         for(int j = 2; j < 16; j++)
+         {
+            s32 samp = pos[j] & 15; // low nibble
+
+            for(int k = 0; k < 2; k++)
+            {
+               samp <<= 12; // convert to 16.16
+
+               if(samp & 0x8000) 
+                  samp |= 0xffff0000; // sign extend
+
+               samp >>= shift_factor; // apply shift
+
+               samp += s_1 * f[predict_weight][0] >> 6;
+               samp += s_2 * f[predict_weight][1] >> 6; // add weighted previous two samples
+
+               // clip
+               if(samp > 32767)
+                  samp = 32767;
+               else if(samp < -32768)
+                  samp = -32768;
+
+               s_2 = s_1;
+               s_1 = (s16)samp; // shift time fowards 1 sample
+               *outpos++ = (s16)samp;
+
+               // second iteration: high nibble
+               samp = pos[j] >> 4;
+            }
+         }
+      }
    }
 }
 
@@ -434,7 +553,17 @@ static void S_loadSounds(const qstring &inpath)
 
    // Render PCM
    printf("S_RenderPCM: Decoding ADPCM data\n");
-   S_renderPCM();
+   switch(s_sfxfmt)
+   {
+   case SFX_FMT_DMX:
+      S_renderPCMDMX();
+      break;
+   case SFX_FMT_WAV:
+      S_renderPCMWAV();
+      break;
+   default:
+      I_Error("S_loadSounds: unknown sound output format %d\n", s_sfxfmt);
+   }
 }
 
 //=============================================================================
