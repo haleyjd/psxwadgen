@@ -24,35 +24,35 @@ mn_font_normal psx_menu_font
 
 font ee_bigfont
 {
-	id          2
-	start       '!'
-	end         'z'
-	linesize    17
-	tallestchar 16
-	spacesize   8
-	colorable   true
-	uppercase   false
-	widthdelta  1
-	
-	patchnumoffset 32
-	filter { start '!'; end 'z'; mask "FONTB%.2d" }
-	
-	defaultcolor red
-	
-	// TODO:
-	colortables
-	{
-		brick  @identity
-		tan    @identity
-		gray   @identity
-		green  @identity
-		brown  @identity
-		gold   @identity
-		red    @identity
-		blue   @identity
-		orange @identity
-		yellow @identity
-	}
+  id          2
+  start       '!'
+  end         'z'
+  linesize    17
+  tallestchar 16
+  spacesize   8
+  colorable   true
+  uppercase   false
+  widthdelta  1
+
+  patchnumoffset 32
+  filter { start '!'; end 'z'; mask "FONTB%.2d" }
+
+  defaultcolor red
+
+  // TODO:
+  colortables
+  {
+    brick  @identity
+    tan    @identity
+    gray   @identity
+    green  @identity
+    brown  @identity
+    gold   @identity
+    red    @identity
+    blue   @identity
+    orange @identity
+    yellow @identity
+  }
 }
 
 f_font ee_bigfont
@@ -63,12 +63,12 @@ f_font ee_bigfont
 
 gameproperties
 {
-	border.flat       "METX02"
-	credit.background "WATER01"
-	finale.text.y     7
-	flags.add         MNBIGFONT
-	menu.background   "MARB01"
-	missionflags.add  ALLOWSECRETTAG
+  border.flat       "METX02"
+  credit.background "WATER01"
+  finale.text.y     7
+  flags.add         MNBIGFONT
+  menu.background   "MARB01"
+  missionflags.add  ALLOWSECRETTAG
 }
 
 //
@@ -78,8 +78,8 @@ gameproperties
 // Revenant shots are approximately half as fast
 thingdelta
 {
-	name  TracerShot
-	speed 4.28571
+  name  TracerShot
+  speed 4.28571
 }
 
 // Revenants walk approximately half as fast
@@ -121,8 +121,8 @@ string PSXCastCyberdemon { bexdest "CC_SPIDER";  val "The Cyberdemon"        }
 thingtype PSXFauxPlayer
 {
   deathsound pldeth
-	states
-	@"
+  states
+  @"
   Spawn:
     PLAY A 10
     loop
@@ -137,15 +137,15 @@ thingtype PSXFauxPlayer
     PLAY HIJKLM 10
     PLAY N      -1
     stop
-	"@
+  "@
 }
 
 // 16th thing is Our Hero
 castinfo PSXCastPlayer
 {
-   type  PSXFauxPlayer
-   name  "Our Hero"
-   sound { frame "Missile"; sfx dshtgn }
+  type  PSXFauxPlayer
+  name  "Our Hero"
+  sound { frame "Missile"; sfx dshtgn }
 }
 
 // Set the order of appearance (note no Arch-Vile!)
