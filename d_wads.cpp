@@ -273,12 +273,12 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
       {
          ZAutoBuffer buf;
          dir.cacheLumpAuto(lump->selfindex, buf);
-#if DUMP_LINE_FLAGS
+#ifdef DUMP_LINE_FLAGS
          // line flags debug output
          if(!strcasecmp(lump->name, "LINEDEFS")) // TEST
             D_dumpLineFlags(filename.constPtr(), buf.get(), buf.getSize());
 #endif
-#if DUMP_SECTOR_FLAGS
+#ifdef DUMP_SECTOR_FLAGS
          // sector flags debug output
          if(!strcasecmp(lump->name, "SECTORS")) // TEST
             D_dumpSectorFlags(filename.constPtr(), buf.get(), buf.getSize());
