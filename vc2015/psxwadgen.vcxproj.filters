@@ -105,6 +105,9 @@
     <ClCompile Include="..\d_scripts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\d_level.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\autopalette.h">
@@ -249,6 +252,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d_level.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

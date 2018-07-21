@@ -139,6 +139,9 @@ static const char *usagestr =
 "  is movie.str; default sector start position is 822 and length is 1377,\n"
 "  suitable for use with a North American release image.\n"
 "\n"
+"-vanillamaps [<directory>]\n"
+"  Write out vanilla-compatible WAD files containing each map.\n"
+"\n"
 "-res <directory>\n"
 "  Sets the external resource directory.\n";
 

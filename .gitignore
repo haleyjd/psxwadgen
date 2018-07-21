@@ -4,14 +4,17 @@ vc2012/*.opensdf
 vc2012/*.sdf
 vc2012/*.suo
 vc2012/*.user
+vc2012/*.txt
 vc2015/Debug/
 vc2015/Release/
 vc2015/*.opensdf
 vc2015/*.sdf
 vc2015/*.suo
 vc2015/*.user
+vc2015/*.txt
 vc2015/*.db
 vc2015/*.opendb
+vc2015/maps
 *.bak
 *.o
 *.pke

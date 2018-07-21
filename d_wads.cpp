@@ -29,6 +29,8 @@
 
 #include "i_opndir.h"
 #include "i_system.h"
+#include "d_level.h"
+#include "m_argv.h"
 #include "m_binary.h"
 #include "m_collection.h"
 #include "m_misc.h"
@@ -233,6 +235,22 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
 
    if(!dir.addNewFile(filename.constPtr()))
       I_Error("D_addOneMapToZip: cannot open file %s\n", filename.constPtr());
+
+   // does the user want to write out vanilla-compatible maps?
+   int arg;
+   if((arg = M_CheckParm("-vanillamaps")))
+   {
+      qstring outPath;
+      filename.extractFileBase(outPath);
+
+      if(arg < myargc - 1 && myargv[arg + 1][0] != '-')
+      {
+         qstring dir(myargv[arg + 1]);
+         outPath = dir.pathConcatenate(outPath.constPtr());
+      }
+
+      D_TranslateLevelToVanilla(dir, outPath); 
+   }
 
    WadNamespaceIterator wni(dir, lumpinfo_t::ns_global);
 

@@ -28,7 +28,6 @@
 #define M_BINARY_H__
 
 #include "doomtype.h"
-#include "m_swap.h"
 
 // haleyjd 10/30/10: Read a little-endian short without alignment assumptions
 #define read16_le(b, t) ((b)[0] | ((t)((b)[1]) << 8))
@@ -47,10 +46,21 @@
 //
 inline int16_t GetBinaryWord(byte **data)
 {
-   int16_t val = SwapShort(read16_le(*data, int16_t));
+   int16_t val = read16_le(*data, int16_t);
    *data += 2;
 
    return val;
+}
+
+//
+// PutBinaryWord
+//
+// Writes an int16 to the data and increments the write pointer
+//
+inline void PutBinaryWord(byte *&data, int16_t d)
+{
+   *data++ = (byte)(d & 0xFF);
+   *data++ = (byte)((d >> 8) & 0xFF);
 }
 
 //
@@ -60,10 +70,21 @@ inline int16_t GetBinaryWord(byte **data)
 //
 inline uint16_t GetBinaryUWord(byte **data)
 {
-   uint16_t val = SwapUShort(read16_le(*data, uint16_t));
+   uint16_t val = read16_le(*data, uint16_t);
    *data += 2;
 
    return val;
+}
+
+//
+// PutBinaryUWord
+//
+// Writes a uint16 to the data and increments the write pointer
+//
+inline void PutBinaryUWord(byte *&data, uint16_t d)
+{
+   *data++ = (byte)(d & 0xFF);
+   *data++ = (byte)((d >> 8) & 0xFF);
 }
 
 //
@@ -73,10 +94,23 @@ inline uint16_t GetBinaryUWord(byte **data)
 //
 inline int32_t GetBinaryDWord(byte **data)
 {
-   int32_t val = SwapLong(read32_le(*data, int32_t));
+   int32_t val = read32_le(*data, int32_t);
    *data += 4;
 
    return val;
+}
+
+//
+// PutBinaryDWord
+//
+// Writes an int32 to the data and increments the write pointer
+//
+inline void PutBinaryDWord(byte *&data, int32_t d)
+{
+   *data++ = (byte)(d & 0xFF);
+   *data++ = (byte)((d >>  8) & 0xFF);
+   *data++ = (byte)((d >> 16) & 0xFF);
+   *data++ = (byte)((d >> 24) & 0xFF);
 }
 
 //
@@ -86,10 +120,23 @@ inline int32_t GetBinaryDWord(byte **data)
 //
 inline uint32_t GetBinaryUDWord(byte **data)
 {
-   uint32_t val = SwapULong(read32_le(*data, uint32_t));
+   uint32_t val = read32_le(*data, uint32_t);
    *data += 4;
 
    return val;
+}
+
+//
+// PutBinaryUDWord
+//
+// Writes an int32 to the data and increments the write pointer
+//
+inline void PutBinaryUDWord(byte *&data, uint32_t d)
+{
+   *data++ = (byte)(d & 0xFF);
+   *data++ = (byte)((d >>  8) & 0xFF);
+   *data++ = (byte)((d >> 16) & 0xFF);
+   *data++ = (byte)((d >> 24) & 0xFF);
 }
 
 //
