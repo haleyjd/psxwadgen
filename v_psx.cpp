@@ -774,7 +774,7 @@ static statusregion_t StatusRegions[] =
    { "STFGIBS4", { 204, 137, 28, 30 }, FACEL(28), FACET(30) }, // *SPLORTCH*
 
    // "small" HUD font characters
-   { "STCFN033", {   2, 168,  8,  8 } }, // !
+   { "STCFN033", {   0, 168,  8,  8 } }, // !
    { "STCFN034", {   8, 168,  8,  8 } }, // "
    { "STCFN035", {  16, 168,  8,  8 } }, // #
    { "STCFN036", {  24, 168,  8,  8 } }, // $
@@ -951,7 +951,6 @@ static statusregion_t StatusRegions[] =
    { "FONTB25",  { 108, 195, 12, 16 } }, // 9
    { "FONTB05",  { 120, 195, 12, 16 } }, // %
    { "FONTB13",  { 232, 199, 10, 16 } }, // -
-
 
    // Skull cursor
    { "M_SKULL1", { 132, 192, 16, 18 } },

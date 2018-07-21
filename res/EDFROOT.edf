@@ -64,6 +64,8 @@ f_font ee_bigfont
 gameproperties
 {
   border.flat       "METX02"
+  castcall.name.y   175
+  castcall.title.y  15
   credit.background "WATER01"
   finale.text.y     7
   flags.add         MNBIGFONT
@@ -74,6 +76,14 @@ gameproperties
 //
 // Monster mods
 //
+
+// Lost souls count for kills as in Doom 1.2
+thingdelta
+{
+  name     LostSoul
+  addflags COUNTKILL
+  remflags KILLABLE
+}
 
 // Revenant shots are approximately half as fast
 thingdelta
@@ -96,9 +106,31 @@ framedelta { name S_SKEL_RUN10; tics 4 }
 framedelta { name S_SKEL_RUN11; tics 4 }
 framedelta { name S_SKEL_RUN12; tics 4 }
 
+// Demon bite attacks use v1.2 tracer logic, but different damage values
+framedelta { name S_SARG_ATK3; action A_SargAttack12(8, 4) }
+
+//
+// Misc thingtype changes
+//
+
+// Bullet puffs are additively translucent
+thingdelta
+{
+  name     BulletPuff
+  remflags TRANSLUCENT
+  addflags TLSTYLEADD
+}
+
+
 //
 // Cast call
 //
+
+// Set title font
+f_titlefont ee_bigfont
+
+// Set title string
+string PSXCastTitle      { bexdest "CC_TITLE";   val "Cast Of Characters"    }
 
 // Just need to change names of first 15
 string PSXCastZombieman  { bexdest "CC_ZOMBIE";  val "Zombieman"             }
@@ -118,24 +150,46 @@ string PSXCastSpider     { bexdest "CC_ARCH";    val "The Spider Mastermind" } /
 string PSXCastCyberdemon { bexdest "CC_SPIDER";  val "The Cyberdemon"        }
 
 // Need a thingtype for player w/tweaked states
-thingtype PSXFauxPlayer
+// Unnecessarily complete, for additional use as a bot buddy. ;)
+thingtype PSXPlayerBuddy
 {
-  deathsound pldeth
+  cflags      SOLID|SHOOTABLE|COUNTKILL|FOOTCLIP|SPACMONSTER|PASSMOBJ|FRIEND
+  spawnhealth 350
+  painchance  255
+  radius      16.0
+  height      56.0
+  speed       16
+  painsound   plpain
+  deathsound  pldeth
   states
   @"
   Spawn:
-    PLAY A 10
+    PLAY A 10 A_Look
     loop
   See:
-    PLAY ABCD 4
+    PLAY ABCD 4 A_Chase
     loop
   Missile:
-    PLAY F 6 bright
+    PLAY F 6 bright A_BulletAttack("dshtgn", "ssg", 20, 5, 3)
     PLAY E 12 
     goto See
+  Pain:
+    PLAY G 4
+    PLAY G 4 A_Pain
+    goto See    
   Death:
-    PLAY HIJKLM 10
-    PLAY N      -1
+    PLAY H   10
+    PLAY I   10 A_Scream
+    PLAY J   10 A_Fall
+    PLAY KLM 10
+    PLAY N   -1
+    stop
+  XDeath:
+    PLAY O      5
+    PLAY P      5 A_XScream
+    PLAY Q      5 A_Fall
+    PLAY RSTUV  5
+    PLAY W     -1
     stop
   "@
 }
@@ -143,7 +197,7 @@ thingtype PSXFauxPlayer
 // 16th thing is Our Hero
 castinfo PSXCastPlayer
 {
-  type  PSXFauxPlayer
+  type  PSXPlayerBuddy
   name  "Our Hero"
   sound { frame "Missile"; sfx dshtgn }
 }
