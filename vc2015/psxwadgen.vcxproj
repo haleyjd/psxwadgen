@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BF27A52D-9D1D-4AC2-A2FA-A0C76BD20D31}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>psxwadgen</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../win32</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;./Debug/zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../win32</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\d_dehtbl.cpp" />
+    <ClCompile Include="..\d_io.cpp" />
+    <ClCompile Include="..\d_scripts.cpp" />
+    <ClCompile Include="..\d_wads.cpp" />
+    <ClCompile Include="..\e_hash.cpp" />
+    <ClCompile Include="..\e_rtti.cpp" />
+    <ClCompile Include="..\i_system.cpp" />
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\metaapi.cpp" />
+    <ClCompile Include="..\metaqstring.cpp" />
+    <ClCompile Include="..\m_argv.cpp" />
+    <ClCompile Include="..\m_buffer.cpp" />
+    <ClCompile Include="..\m_fcvt.cpp" />
+    <ClCompile Include="..\m_misc.cpp" />
+    <ClCompile Include="..\m_qstr.cpp" />
+    <ClCompile Include="..\m_strcasestr.cpp" />
+    <ClCompile Include="..\psnprntf.cpp" />
+    <ClCompile Include="..\s_sfxgen.cpp" />
+    <ClCompile Include="..\s_sounds.cpp" />
+    <ClCompile Include="..\tables.cpp" />
+    <ClCompile Include="..\v_loading.cpp" />
+    <ClCompile Include="..\v_psx.cpp" />
+    <ClCompile Include="..\win32\i_opndir.cpp" />
+    <ClCompile Include="..\w_formats.cpp" />
+    <ClCompile Include="..\w_wad.cpp" />
+    <ClCompile Include="..\w_zip.cpp" />
+    <ClCompile Include="..\zip_write.cpp" />
+    <ClCompile Include="..\z_native.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\autopalette.h" />
+    <ClInclude Include="..\doomtype.h" />
+    <ClInclude Include="..\d_dehtbl.h" />
+    <ClInclude Include="..\d_dwfile.h" />
+    <ClInclude Include="..\d_io.h" />
+    <ClInclude Include="..\d_keywds.h" />
+    <ClInclude Include="..\d_scripts.h" />
+    <ClInclude Include="..\d_wads.h" />
+    <ClInclude Include="..\e_hash.h" />
+    <ClInclude Include="..\e_hashkeys.h" />
+    <ClInclude Include="..\e_rtti.h" />
+    <ClInclude Include="..\i_opndir.h" />
+    <ClInclude Include="..\i_system.h" />
+    <ClInclude Include="..\main.h" />
+    <ClInclude Include="..\metaadapter.h" />
+    <ClInclude Include="..\metaapi.h" />
+    <ClInclude Include="..\metaqstring.h" />
+    <ClInclude Include="..\m_argv.h" />
+    <ClInclude Include="..\m_binary.h" />
+    <ClInclude Include="..\m_buffer.h" />
+    <ClInclude Include="..\m_collection.h" />
+    <ClInclude Include="..\m_compare.h" />
+    <ClInclude Include="..\m_ctype.h" />
+    <ClInclude Include="..\m_dllist.h" />
+    <ClInclude Include="..\m_fcvt.h" />
+    <ClInclude Include="..\m_fixed.h" />
+    <ClInclude Include="..\m_misc.h" />
+    <ClInclude Include="..\m_qstr.h" />
+    <ClInclude Include="..\m_qstrkeys.h" />
+    <ClInclude Include="..\m_strcasestr.h" />
+    <ClInclude Include="..\m_structio.h" />
+    <ClInclude Include="..\m_swap.h" />
+    <ClInclude Include="..\psnprntf.h" />
+    <ClInclude Include="..\r_patch.h" />
+    <ClInclude Include="..\s_sfxgen.h" />
+    <ClInclude Include="..\s_sounds.h" />
+    <ClInclude Include="..\tables.h" />
+    <ClInclude Include="..\v_loading.h" />
+    <ClInclude Include="..\v_psx.h" />
+    <ClInclude Include="..\win32\inttypes.h" />
+    <ClInclude Include="..\win32\stdint.h" />
+    <ClInclude Include="..\w_formats.h" />
+    <ClInclude Include="..\w_iterator.h" />
+    <ClInclude Include="..\w_wad.h" />
+    <ClInclude Include="..\w_zip.h" />
+    <ClInclude Include="..\zip_write.h" />
+    <ClInclude Include="..\z_auto.h" />
+    <ClInclude Include="..\z_zone.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
