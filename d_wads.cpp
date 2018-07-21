@@ -157,7 +157,7 @@ static void D_openLevelPWADs(const qstring &inpath)
 }
 #endif
 
-#ifndef NO_UNIT_TESTS
+#ifdef DUMP_LINE_FLAGS
 
 //
 // D_dumpLineFlags
@@ -184,6 +184,10 @@ static void D_dumpLineFlags(const char *filename, void *lines, size_t size)
 
    fclose(f);
 }
+
+#endif
+
+#ifdef DUMP_SECTOR_FLAGS
 
 //
 // D_dumpSectorFlags
@@ -269,12 +273,12 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
       {
          ZAutoBuffer buf;
          dir.cacheLumpAuto(lump->selfindex, buf);
-#if 0
+#if DUMP_LINE_FLAGS
          // line flags debug output
          if(!strcasecmp(lump->name, "LINEDEFS")) // TEST
             D_dumpLineFlags(filename.constPtr(), buf.get(), buf.getSize());
 #endif
-#if 1
+#if DUMP_SECTOR_FLAGS
          // sector flags debug output
          if(!strcasecmp(lump->name, "SECTORS")) // TEST
             D_dumpSectorFlags(filename.constPtr(), buf.get(), buf.getSize());
