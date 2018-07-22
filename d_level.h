@@ -58,10 +58,11 @@ struct mapthing_t
 
 #define MAPTHING_ORIG_SIZEOF 10
 
-#define DEN_SPECTRE   58    // Only in vanilla
-#define DEN_CHAIN     64    // Arch-vile in vanilla, bloody chain in PSX
-#define DEN_DEMON     3002  // Used both by vanilla and PSX
-#define DEN_CACODEMON 3005
+#define DEN_SPECTRE    58    // Only in vanilla
+#define DEN_HANGINGLEG 62    // Closest vanilla actor type to the bloody chain
+#define DEN_CHAIN      64    // Arch-vile in vanilla, bloody chain in PSX
+#define DEN_DEMON      3002  // Used both by vanilla and PSX
+#define DEN_CACODEMON  3005
 
 #define DEN_EE_NMSPECTRE 889
 #define DEN_EE_SPECTRE0  892

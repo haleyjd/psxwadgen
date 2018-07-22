@@ -171,6 +171,8 @@ static void D_TranslateTHINGS(byte *inData, size_t inSize, byte *&outData, uint 
          case DEN_CHAIN:
             if(tlflags & TTLF_USE_EE_DNUMS)
                mt.type = DEN_EE_CHAIN;
+            else
+               mt.type = DEN_HANGINGLEG;
             break;
          default:
             if(mt.options & MTF_PSX_USEBLEND)
