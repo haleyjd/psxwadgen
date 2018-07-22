@@ -22,6 +22,7 @@
 #include "z_auto.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "m_argv.h"
 #include "m_binary.h"
 #include "m_fixed.h"
 #include "m_misc.h"
@@ -104,6 +105,91 @@ static void D_TranslateSECTORS(byte *inData, size_t inSize, byte *&outData)
    }
 }
 
+enum thingtlflags_e
+{
+   TTLF_FIXTHINGS    = 1,
+   TTLF_USE_EE_DNUMS = 2  // Target Eternity's custom thing types
+};
+
+//
+// Translate THINGS lump - certain types of transforms may be optionally applied
+// to change thing types that are specific to the PlayStation port.
+//
+static void D_TranslateTHINGS(byte *inData, size_t inSize, byte *&outData, uint tlflags)
+{
+   size_t numthings = inSize / MAPTHING_ORIG_SIZEOF;
+
+   for(size_t i = 0; i < numthings; i++)
+   {
+      mapthing_t mt;
+      mt.x       = GetBinaryWord(&inData);
+      mt.y       = GetBinaryWord(&inData);
+      mt.angle   = GetBinaryWord(&inData);
+      mt.type    = GetBinaryWord(&inData);
+      mt.options = GetBinaryWord(&inData);
+
+      // fix up thing types?
+      if(tlflags & TTLF_FIXTHINGS)
+      {
+         psxblendmode_e spectreType = static_cast<psxblendmode_e>((mt.options & MTF_PSX_BLENDMASK) >> MTF_BLENDSHIFT);
+         switch(mt.type)
+         {
+         case DEN_DEMON:
+            if(mt.options & MTF_PSX_USEBLEND)
+            {
+               if(tlflags & TTLF_USE_EE_DNUMS)
+               {
+                  switch(spectreType)
+                  {
+                  case PBM_TL50:
+                     mt.type = DEN_EE_SPECTRE0;
+                     break;
+                  case PBM_TLADD100:
+                     mt.type = DEN_EE_SPECTRE1;
+                     break;
+                  case PBM_NIGHTMARE:
+                     mt.type = DEN_EE_NMSPECTRE;
+                     break;
+                  case PBM_TLADD25:
+                     mt.type = DEN_EE_SPECTRE3;
+                     break;
+                  }
+               }
+               else
+                  mt.type = DEN_SPECTRE;
+            }
+            break;
+         case DEN_CACODEMON:
+            if(mt.options & MTF_PSX_USEBLEND && tlflags & TTLF_USE_EE_DNUMS)
+            {
+               if(spectreType == PBM_TL50)
+                  mt.type = DEN_EE_SPECCACO;
+               else
+                  printf("Warning: unknown Cacodemon type at (%d, %d); spectre type = %d\n", mt.x, mt.y, spectreType);
+            }
+            break;
+         case DEN_CHAIN:
+            if(tlflags & TTLF_USE_EE_DNUMS)
+               mt.type = DEN_EE_CHAIN;
+            break;
+         default:
+            if(mt.options & MTF_PSX_USEBLEND)
+               printf("Warning: unknown spectral thing type %d at (%d, %d); spectre type = %d\n", mt.type, mt.x, mt.y, spectreType);
+            break;
+         }
+
+         // remove the special flags since they conflict with ports like Boom and MBF
+         mt.options &= ~(MTF_PSX_USEBLEND|MTF_PSX_BLENDMASK);
+      }
+
+      PutBinaryWord(outData, mt.x);
+      PutBinaryWord(outData, mt.y);
+      PutBinaryWord(outData, mt.angle);
+      PutBinaryWord(outData, mt.type);
+      PutBinaryWord(outData, mt.options);
+   }
+}
+
 //
 // Ouput a vanilla-format level wad for PSX Doom level input.
 // Thing types, line specials, and line flags are not currently accounted for.
@@ -111,6 +197,12 @@ static void D_TranslateSECTORS(byte *inData, size_t inSize, byte *&outData)
 //
 void D_TranslateLevelToVanilla(WadDirectory &dir, const qstring &outName)
 {
+   uint tlflags = 0;
+   if(M_CheckParm("-fixthings") != 0)
+      tlflags |= TTLF_FIXTHINGS;
+   if(M_CheckParm("-ee") != 0)
+      tlflags |= TTLF_USE_EE_DNUMS;
+
    WadNamespaceIterator wni(dir, lumpinfo_t::ns_global);
 
    size_t sizeNeeded = 0;
@@ -186,6 +278,8 @@ void D_TranslateLevelToVanilla(WadDirectory &dir, const qstring &outName)
             D_TranslateSECTORS(buf.getAs<byte *>(), lump->size, inptr);
          else if(!strcasecmp(lump->name, "VERTEXES"))
             D_TranslateVERTEXES(buf.getAs<byte *>(), lump->size, inptr);
+         else if(!strcasecmp(lump->name, "THINGS") && tlflags != 0) // only translate things if so instructed
+            D_TranslateTHINGS(buf.getAs<byte *>(), lump->size, inptr, tlflags);
          else if(!strcasecmp(lump->name, "LEAFS"))
             continue; // don't include LEAFS
          else

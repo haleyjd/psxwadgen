@@ -33,7 +33,8 @@
 #ifndef BYTEBOOL__
 #define BYTEBOOL__
 // haleyjd 04/10/11: boolean typedef eliminated in pref. of direct use of bool
-typedef uint8_t byte;
+typedef uint8_t  byte;
+typedef uint32_t uint;
 #endif
 
 // SoM: resolve platform-specific range symbol issues
