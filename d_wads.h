@@ -35,10 +35,9 @@ struct ziparchive_t;
 
 void D_LoadInputFiles(const qstring &inpath);
 void D_AddMapsToZip(ziparchive_t *zip, const qstring &inpath);
+bool D_IsFinalDoom();
 
 extern WadDirectory psxIWAD;
-
-
 
 #endif
 

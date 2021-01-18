@@ -52,6 +52,7 @@ private:
    void unLocalize(size_t pSize);
 
 public:
+   static const qstring emptyString;
    static const size_t npos;
    static const size_t basesize;
 

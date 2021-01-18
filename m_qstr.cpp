@@ -45,6 +45,8 @@
 const size_t qstring::npos = ((size_t) -1);
 const size_t qstring::basesize = 16;
 
+const qstring qstring::emptyString;
+
 //=============================================================================
 //
 // Constructors, Destructors, and Reinitializers

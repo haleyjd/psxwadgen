@@ -35,6 +35,7 @@
 #include "m_collection.h"
 #include "m_misc.h"
 #include "m_qstr.h"
+#include "m_strcasestr.h"
 #include "v_loading.h"
 #include "w_wad.h"
 #include "w_iterator.h"
@@ -50,6 +51,41 @@ PODCollection<WadDirectory *> levelWads; // PWAD directories
 
 // Remember the canonical form of the ABIN directory name
 static qstring abin; 
+
+// Is this a PSX Final Doom image/disc?
+static bool isFinalDoom;
+
+//
+// If the MAPDIR folders contain .ROM files, this is PSX Final Doom data
+//
+static void D_CheckFinalDoom(const qstring &inpath, const char *mapdir)
+{
+    qstring fullpath = inpath;
+    fullpath.pathConcatenate(mapdir);
+
+    DIR *dir;
+    if((dir = opendir(fullpath.constPtr())))
+    {
+        dirent *entry;
+        while((entry = readdir(dir)))
+        {
+            if(M_StrCaseStr(entry->d_name, ".ROM"))
+            {
+                isFinalDoom = true;
+                break;
+            }
+        }
+        closedir(dir);
+    }
+}
+
+//
+// Check if the data directory is for PSX Final Doom
+//
+bool D_IsFinalDoom()
+{
+    return isFinalDoom;
+}
 
 //
 // D_verifyInputDirectory
@@ -78,7 +114,10 @@ static void D_verifyInputDirectory(const qstring &inpath)
       if(!strcasecmp(entry->d_name, "CDAUDIO"))
          ++score;
       if(!strcasecmp(entry->d_name, "MAPDIR0"))
+      {
+         D_CheckFinalDoom(inpath, entry->d_name);
          ++score;
+      }
    }
    rewinddir(inputDir);
 
@@ -252,7 +291,7 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
       D_TranslateLevelToVanilla(dir, outPath); 
    }
 
-   WadNamespaceIterator wni(dir, lumpinfo_t::ns_global);
+   WadNamespaceIterator wni { dir, lumpinfo_t::ns_global };
 
    wadinfo_t header  = { {'P','W','A','D'}, wni.getNumLumps(), 12 };
    size_t sizeNeeded = 12 + 16 * wni.getNumLumps();
@@ -275,7 +314,7 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
    // write in directory
    for(wni.begin(); wni.current(); wni.next())
    {
-      lumpinfo_t *lump = wni.current();
+      const lumpinfo_t *const lump = wni.current();
       PUTLONG(inptr, filepos);
       PUTLONG(inptr, lump->size);
       memcpy(inptr, lump->name, 8);
@@ -286,7 +325,7 @@ static void D_addOneMapToZip(ziparchive_t *zip, const char *name, const qstring 
    // write in lumps
    for(wni.begin(); wni.current(); wni.next())
    {
-      lumpinfo_t *lump = wni.current();
+      const lumpinfo_t *const lump = wni.current();
       if(lump->size > 0)
       {
          ZAutoBuffer buf;
@@ -346,6 +385,8 @@ void D_AddMapsToZip(ziparchive_t *zip, const qstring &inpath)
 
    printf("D_AddMaps: adding map wadfiles.\n");
 
+   const char *const ext = isFinalDoom ? ".ROM" : ".WAD";
+
    while((file = readdir(inputDir)))
    {
       if(!strncasecmp(file->d_name, "MAPDIR", 6))
@@ -358,13 +399,13 @@ void D_AddMapsToZip(ziparchive_t *zip, const qstring &inpath)
          if(!(subdir = opendir(subdirpath.constPtr())))
             continue;
 
-         // look for .wad files in the subdirectory
+         // look for .wad or .rom files in the subdirectory
          while((wadfile = readdir(subdir)))
          {
             qstring filename = subdirpath;
             filename.pathConcatenate(wadfile->d_name);
 
-            if(filename.findSubStrNoCase(".WAD"))
+            if(filename.findSubStrNoCase(ext))
                D_addOneMapToZip(zip, wadfile->d_name, filename);
          }
 

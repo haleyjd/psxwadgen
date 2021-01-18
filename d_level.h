@@ -71,6 +71,33 @@ struct mapthing_t
 #define DEN_EE_SPECCACO  894
 #define DEN_EE_CHAIN     891
 
+// Sidedef
+struct mapsidedef_t
+{
+    int16_t textureoffset;
+    int16_t rowoffset;
+    char    toptexture[8];
+    char    bottomtexture[8];
+    char    midtexture[8];
+    int16_t sector;
+};
+
+#define MAPSIDEDEF_ORIG_SIZEOF 30
+
+// Sector
+struct mapsector_t
+{
+    int16_t floorheight;
+    int16_t ceilingheight;
+    char    floorpic[8];
+    char    ceilingpic[8];
+    int16_t lightlevel;
+    int16_t special;
+    int16_t tag;
+};
+
+#define MAPSECTOR_ORIG_SIZEOF 26
+
 void D_TranslateLevelToVanilla(WadDirectory &dir, const qstring &outName);
 
 #endif

@@ -40,8 +40,6 @@
     ((t)((b)[3]) << 24))
 
 //
-// GetBinaryWord
-//
 // Reads an int16 from the lump data and increments the read pointer.
 //
 inline int16_t GetBinaryWord(byte **data)
@@ -53,8 +51,6 @@ inline int16_t GetBinaryWord(byte **data)
 }
 
 //
-// PutBinaryWord
-//
 // Writes an int16 to the data and increments the write pointer
 //
 inline void PutBinaryWord(byte *&data, int16_t d)
@@ -63,8 +59,6 @@ inline void PutBinaryWord(byte *&data, int16_t d)
    *data++ = (byte)((d >> 8) & 0xFF);
 }
 
-//
-// GetBinaryUWord
 //
 // Reads a uint16 from the lump data and increments the read pointer.
 //
@@ -77,8 +71,6 @@ inline uint16_t GetBinaryUWord(byte **data)
 }
 
 //
-// PutBinaryUWord
-//
 // Writes a uint16 to the data and increments the write pointer
 //
 inline void PutBinaryUWord(byte *&data, uint16_t d)
@@ -87,8 +79,6 @@ inline void PutBinaryUWord(byte *&data, uint16_t d)
    *data++ = (byte)((d >> 8) & 0xFF);
 }
 
-//
-// GetBinaryDWord
 //
 // Reads an int32 from the lump data and increments the read pointer.
 //
@@ -101,8 +91,6 @@ inline int32_t GetBinaryDWord(byte **data)
 }
 
 //
-// PutBinaryDWord
-//
 // Writes an int32 to the data and increments the write pointer
 //
 inline void PutBinaryDWord(byte *&data, int32_t d)
@@ -113,8 +101,6 @@ inline void PutBinaryDWord(byte *&data, int32_t d)
    *data++ = (byte)((d >> 24) & 0xFF);
 }
 
-//
-// GetBinaryUDWord
 //
 // Reads a uint32 from the lump data and increments the read pointer.
 //
@@ -127,8 +113,6 @@ inline uint32_t GetBinaryUDWord(byte **data)
 }
 
 //
-// PutBinaryUDWord
-//
 // Writes an int32 to the data and increments the write pointer
 //
 inline void PutBinaryUDWord(byte *&data, uint32_t d)
@@ -140,8 +124,6 @@ inline void PutBinaryUDWord(byte *&data, uint32_t d)
 }
 
 //
-// GetBinaryString
-//
 // Reads a "len"-byte string from the lump data and writes it into the 
 // destination buffer. The read pointer is incremented by len bytes.
 //
@@ -152,6 +134,27 @@ inline void GetBinaryString(byte **data, char *dest, int len)
    memcpy(dest, loc, len);
 
    *data += len;
+}
+
+//
+// Writes a "len"-byte string into the destination buffer. The write pointer
+// is incremented by len bytes.
+//
+inline void PutBinaryString(byte *&data, const char *src, int len)
+{
+    memcpy(data, src, len);
+    data += len;
+}
+
+//
+// Write the char array into the destination buffer. The write pointer is
+// incremented by the size of the array.
+//
+template<size_t N>
+inline void PutBinaryCharArray(byte *&data, const char (&src)[N])
+{
+    memcpy(data, src, N);
+    data += N;
 }
 
 #endif
